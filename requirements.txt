@@ -1,2 +1,6 @@
 numpy
 tyro
+tqdm
+cv2
+
+
