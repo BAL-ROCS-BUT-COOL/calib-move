@@ -138,93 +138,13 @@ def process_one_video(vid_path, detector, matcher):
     hs = np.array(homographies)
     
     return hs
-
-def plot_results(hs):
-    
-    x_data = np.arange(hs.shape[0])
-    y_data = np.abs(hs[:, 0, 2]) + np.abs(hs[:, 1, 2])
-    
-    TXTCOL = "rgba(20, 20, 20, 1.0)"
-
-    BKGCOL = "rgba(255, 255, 255, 1.0)"
-    
-    LINCOL = "rgba(255, 0, 0, 0.3)"
-    MRKCOL = "rgba(255, 0, 0, 1.0)"
-    
-    GRDCOL = "rgba(200, 200, 200, 1.0)"
-    ZRLCOL = GRDCOL
-    GRDWIDTH = 2.0
-    ZRLWIDTH = 5.0
-    
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter( # main plot
-        x = x_data,
-        y = y_data,
-        mode = "lines+markers",
-        line = dict(color = LINCOL, width = 3, dash = "dot"),
-        marker = dict(color = MRKCOL, symbol = "square", size = 10),
-    ))
-    fig.add_trace(go.Scatter( # cosmetic bar
-        x = [x_data.max(), x_data.max()],
-        y = [-0.1*y_data.max(), 1.2*y_data.max()],
-        mode = "lines",
-        line = dict(color = ZRLCOL, width = ZRLWIDTH),
-        zorder = -1
-    ))
-    
-    fig.update_xaxes(
-        range = [-0.04*x_data.max(), 1.04*x_data.max()],
-        showgrid = True,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickvals = np.linspace(x_data.min(), x_data.max(), 6),
-        ticktext = ["00:00:00", "00:01:00", "00:02:00", "00:03:00", "00:04:00", "00:05:00"],
-        
-    )
-    fig.update_yaxes(
-        range = [-0.1*y_data.max(), 1.1*y_data.max()],
-        showgrid = True,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickformat = ".2~s",
-        tickvals = np.linspace(0, y_data.max(), 4),
-        
-    )
-    fig.update_layout(
-        title = dict(
-            text = "plot for: <b>vid_xxx_asdfasdfdasf_asdfasdfdsa_000092345.mp4</b>", 
-            x = 0.015, y = 0.92, xref = "container", yref = "container", xanchor = "left", yanchor="top",
-            font_size = 20),
-        paper_bgcolor = BKGCOL,
-        plot_bgcolor = BKGCOL,
-        font = dict(family = "JetBrains Mono", size = 16, color = TXTCOL),
-        width = 1200,
-        height = 300,
-        margin = dict(l = 80+20, r = 20, t = 45+20, b = 20, pad = 5),
-        showlegend = False
-    )
-    fig.add_annotation(
-        text = "<b>video movement [px]</b>", font_size = 16, textangle = -90,
-        x = -0.08, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
-        showarrow = False
-        
-    )
-
-    fig.show()
-    
-    
-    
+   
 def plot_results_multi(hs):
     
+    minimal_maximum = 50
     x_steps = np.arange(hs.shape[0])
     abs_data = np.sqrt(hs[:, 0, 2]**2 + hs[:, 1, 2]**2)
+    abs_max = max(abs_data.max(), minimal_maximum)
     
     TXTCOL = "rgba(20, 20, 20, 1.0)"
 
@@ -240,7 +160,7 @@ def plot_results_multi(hs):
     
     fig = make_subplots(
         rows=1, cols=2, 
-        column_widths = [0.8, 0.2], horizontal_spacing = 0.04,
+        column_widths = [0.78, 0.22], horizontal_spacing = 0.12,
         shared_xaxes=False, shared_yaxes=False)
     
     fig.add_trace(go.Scatter( # main plot
@@ -253,7 +173,7 @@ def plot_results_multi(hs):
     
     fig.add_trace(go.Scatter( # cosmetic bar
         x = [x_steps.max(), x_steps.max()],
-        y = [-0.1*abs_data.max(), 1.2*abs_data.max()],
+        y = [-0.1*abs_max, 1.2*abs_max],
         mode = "lines",
         line = dict(color = ZRLCOL, width = ZRLWIDTH),
         zorder = -1
@@ -268,15 +188,15 @@ def plot_results_multi(hs):
     
     fig.add_shape(row = 1, col = 2,
         type = "circle", 
-        x0 = -abs_data.max(), y0 = -abs_data.max(),
-        x1 =  abs_data.max(), y1 =  abs_data.max(),
+        x0 = -abs_max, y0 = -abs_max,
+        x1 =  abs_max, y1 =  abs_max,
         layer = "below",
         line = dict(color = GRDCOL, width = GRDWIDTH)  
     )
     fig.add_shape(row = 1, col = 2,
         type = "circle", 
-        x0 = -abs_data.max()/2, y0 = -abs_data.max()/2,
-        x1 =  abs_data.max()/2, y1 =  abs_data.max()/2,
+        x0 = -abs_max/2, y0 = -abs_max/2,
+        x1 =  abs_max/2, y1 =  abs_max/2,
         layer = "below",
         line = dict(color = GRDCOL, width = GRDWIDTH)
         
@@ -296,20 +216,20 @@ def plot_results_multi(hs):
     )
     
     fig.update_yaxes(row = 1, col = 1,
-        range = [-0.1*abs_data.max(), 1.1*abs_data.max()],
+        range = [-0.1*abs_max, 1.1*abs_max],
         showgrid = True,
         zeroline = True,
         gridcolor = GRDCOL,
         zerolinecolor = ZRLCOL,
         gridwidth = GRDWIDTH,
         zerolinewidth = ZRLWIDTH,
-        tickformat = ".2~s",
-        tickvals = np.linspace(0, abs_data.max(), 4), 
+        tickformat = ".1~s",
+        tickvals = np.linspace(0, abs_max, 4), 
     )
     
     # subplot 2 ----------------------------------------------------------------
     fig.update_xaxes(row = 1, col = 2,
-        range = [-1.1*abs_data.max(), 1.1*abs_data.max()],
+        range = [-1.1*abs_max, 1.1*abs_max],
         constrain = "domain",
         scaleanchor = "y2", # watch out, needs the y axis from the second plot as scaleanchor!
         showgrid = False,
@@ -318,11 +238,12 @@ def plot_results_multi(hs):
         zerolinecolor = ZRLCOL,
         gridwidth = GRDWIDTH,
         zerolinewidth = ZRLWIDTH,
-        showticklabels = False,
+        tickformat = ".1~s",
+        tickvals = np.linspace(-abs_max, abs_max, 3)
     )
     
     fig.update_yaxes(row = 1, col = 2,
-        range = [-1.1*abs_data.max(), 1.1*abs_data.max()],
+        range = [-1.1*abs_max, 1.1*abs_max],
         constrain = "domain",
         showgrid = False,
         zeroline = True,
@@ -330,7 +251,8 @@ def plot_results_multi(hs):
         zerolinecolor = ZRLCOL,
         gridwidth = GRDWIDTH,
         zerolinewidth = ZRLWIDTH,
-        showticklabels = False,
+        tickformat = ".1~s",
+        tickvals = np.linspace(-abs_max, abs_max, 5)
     )
     
     
@@ -347,15 +269,22 @@ def plot_results_multi(hs):
         font = dict(family = "JetBrains Mono", size = 16, color = TXTCOL),
         width = 1200,
         height = 300,
-        margin = dict(l = 80+20, r = 20, t = 45+20, b = 20, pad = 5),
+        margin = dict(l = 70+20, r = 20, t = 45+20, b = 20, pad = 5),
         showlegend = False
     )
     
     fig.add_annotation(
-        text = "<b>absolute movem. [px]</b>", font_size = 16, textangle = -90,
-        x = -0.08, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
+        text = "<b>|(x, y)| - move. [px]</b>", font_size = 16, textangle = -90,
+        x = -0.07, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
         showarrow = False,
     )
+    
+    fig.add_annotation(
+        text = "<b> (x, y) - movem. [px]</b>", font_size = 16, textangle = -90,
+        x = 0.74, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
+        showarrow = False,
+    )
+    
 
     fig.show()  
     

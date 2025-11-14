@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # simulate result of stacked homographies
     n = 50
     hs = np.zeros((n, 3, 3))
-    hs[:, 0, 2] = (np.random.rand(n, ) - 0.5)*400 # x translation part
+    hs[:, 0, 2] = (np.random.rand(n, ) - 0.5)*2800 # x translation part
     hs[:, 1, 2] = (np.random.rand(n, ) - 0.5)*400 # y translation part
     
     plot_results_multi(hs)

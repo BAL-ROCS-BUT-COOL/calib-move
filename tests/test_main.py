@@ -9,7 +9,7 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
     argv = [
-        "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/vid_2.mp4",
+        "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/vid_3.mp4",
         "--static-sequence", "START",
     ]
     main_func(argv=argv)
