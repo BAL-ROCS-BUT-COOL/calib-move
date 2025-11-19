@@ -13,7 +13,7 @@ from typing import Annotated
 import tyro
 
 
-ALLOWED_VIDEO_EXT = [".mp4"] # TODO: check what even works with cv2
+ALLOWED_VIDEO_EXT = [".mp4"] # TODO: check what even works with cv2, maybe move to one "param file"
 
 class KeypointDetector(Enum):
     AKAZE = cv.AKAZE_create()
@@ -48,19 +48,12 @@ class InitFrameBlending(Enum):
             case "KDE":
                 return calc_kde_image
 
-@dataclass
+@dataclass(frozen=True)
 class CLIArgs:
-    """
-    controls the cli of tyro and directly stores the input arguments (sys.argv)
-    
-    Attributes:
-        input_video_path: path to the video that should be analyzed
-        static_sequence: either START / END / maybe also somethinsg like(00:00:10 - 00:00:20)
 
-    """
     input_video_path: Annotated[str, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path}")]
     
-    static_window: Annotated[str, tyro.conf.arg(metavar="{START-hh:mm:ss,END-hh:mm:ss,hh:mm:ss-hh:mm:ss,<json-path>}",)]
+    static_window: Annotated[str, tyro.conf.arg(metavar="{START-hh:mm:ss,hh:mm:ss-END,hh:mm:ss-hh:mm:ss,<json-path>}",)]
     n_init_steps: int = 5
     init_frame_blending: InitFrameBlending = InitFrameBlending.KDE
     
@@ -93,7 +86,7 @@ class CLIArgs:
             raise ValueError("invalid input_video_path! (neither a file nor a folder)")
         
     def _sanitize_static_window(self) -> None:
-        # window json path ---------------------------------------------------------
+        # window json path -----------------------------------------------------
         if os.path.isfile(self.static_window):
             ext = os.path.splitext(self.static_window)[1]
             if ext != ".json":
@@ -101,24 +94,24 @@ class CLIArgs:
             else:
                 return # found a good json file
         
-        # START-xx:xx:xx -----------------------------------------------------------
+        # START-xx:xx:xx -------------------------------------------------------
         elif len(re.findall(r"START-\d\d:\d\d:\d\d", self.static_window)) > 0:
             return # found a good string arg
         
-        # END-xx:xx:xx -------------------------------------------------------------
-        elif len(re.findall(r"END-\d\d:\d\d:\d\d", self.static_window)) > 0:
+        # xx:xx:xx-END ---------------------------------------------------------
+        elif len(re.findall(r"\d\d:\d\d:\d\d-END", self.static_window)) > 0:
             return # found a good string arg
 
-        # xx:xx:xx-xx:xx:xx --------------------------------------------------------
+        # xx:xx:xx-xx:xx:xx ----------------------------------------------------
         elif len(re.findall(r"\d\d:\d\d:\d\d-\d\d:\d\d:\d\d", self.static_window)) > 0:
             return # found a good string arg
 
-        # invalid static window argument -------------------------------------------
+        # invalid static window argument ---------------------------------------
         else:
             raise ValueError("invalid static_window argument!")
 
     def _sanitize_json(self) -> None:
-        ... # TODO: if a json file specified, read it, verify that it has correct contents
+        ... # TODO: if a json file specified, read it, verify that it has correct contents. verify video names!!
 
     def sanitize(self) -> None:
         self._sanitize_input_video_path()

@@ -2,7 +2,7 @@ import os
 from   glob import glob
 import tyro
 
-from   ..core.config import ALLOWED_VIDEO_EXT
+from   ..core.cliargs import ALLOWED_VIDEO_EXT
 
 
 def generate_template_json(vid_folder_path: str):

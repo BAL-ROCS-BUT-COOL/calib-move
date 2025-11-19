@@ -17,7 +17,6 @@ if __name__ == "__main__":
     main_generate_json(argv=argv)
     
     
-    
 
     # with open("test.json", mode="w", encoding="utf-8") as file:
     #     json.dump(somedata, file, indent=4)

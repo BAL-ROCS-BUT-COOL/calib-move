@@ -1,14 +1,19 @@
-from   dataclasses import dataclass
+from   dataclasses import dataclass, field
 import os
+from   numpy.typing import NDArray
 
 
 @dataclass
-class VidInfo:
+class VideoContainer:
+    
     path: str
     fpsc: float
     ftot: int
     
     static_window: tuple[float, float] # [start_second, end_second]
+    
+    hs_arrays: list[NDArray] = field(default_factory=list)
+    hs_errors: list[bool] = field(default_factory=list)
     
     @property
     def stot(self):

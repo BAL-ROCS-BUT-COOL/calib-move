@@ -10,6 +10,6 @@ if __name__ == "__main__":
     
     argv = [
         "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/vid_3.mp4",
-        "--static-sequence", "START",
+        "--static-window", "START-00:02:00",
     ]
     main_func(argv=argv)
