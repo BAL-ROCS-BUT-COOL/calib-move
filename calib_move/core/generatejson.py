@@ -3,15 +3,18 @@ from   glob import glob
 import tyro
 
 from   .cliargs import ALLOWED_VIDEO_EXT
+from ..util.jsonio import str_2_json
 
+
+GEN_TEMPLATE_JSON_PATH = "scripts/static_window_template.json" # TODO: also move to config param file
 
 def generate_template_json(vid_folder_path: str):
     # create a template json from a folder with all video of type "ALLOWED_VIDEO_EXT"
     vid_glob = [vd for xt in ALLOWED_VIDEO_EXT for vd in glob(os.path.join(vid_folder_path, f"*{xt}"))]
-    vid_dict = {f"{os.path.basename(vid)}": "hh:mm:ss-hh:mm:ss" for vid in vid_glob}
+    vid_dict = {f"{os.path.basename(vd)}": "hh:mm:ss-hh:mm:ss" for vd in vid_glob}
     
     # find longest key name
-    max_key_len = max(len(k) for k in vid_dict.keys())
+    max_key_len = max(len(ky) for ky in vid_dict.keys())
     
     # picece together json
     lines = ["{"]
@@ -25,8 +28,7 @@ def generate_template_json(vid_folder_path: str):
     lines[-1] = lines[-1].strip(",")
     lines.append("}")
     
-    with open("scripts/static_window_template.json", mode="w", encoding="utf-8") as file:
-        file.write("\n".join(lines))
+    str_2_json(GEN_TEMPLATE_JSON_PATH, "\n".join(lines))
         
 def main_generate_json(argv=None):
     CLIARGS_GEN_JSON = tyro.cli(generate_template_json, args=argv) # also calls the function!

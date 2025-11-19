@@ -13,8 +13,8 @@ class VideoContainer:
     
     static_window: tuple[float, float] # [start_second, end_second]
     
-    hs_arrays: list[NDArray] = field(default_factory=list)
-    hs_errors: list[bool] = field(default_factory=list)
+    ho_arrays: list[NDArray] = field(default_factory=list)
+    ho_errors: list[bool] = field(default_factory=list)
     
     @property
     def stot(self):

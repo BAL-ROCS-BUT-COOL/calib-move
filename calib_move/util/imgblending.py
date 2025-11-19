@@ -2,21 +2,22 @@ import cv2 as cv
 import numpy as np
 from   numpy.typing import NDArray
 import scipy.stats
+from   typing import Annotated
 
 
-def calc_median_image(img_list: list[NDArray]) -> NDArray:
+def calc_median_image(img_list: list[NDArray]) -> NDArray[np.uint8]:
     
     img_stack = np.array(img_list)
     median_image = np.median(img_stack, axis=0).astype(np.uint8)
     return median_image
 
-def calc_mode_image(img_list: list[NDArray]) -> NDArray:
+def calc_mode_image(img_list: list[NDArray]) -> NDArray[np.uint8]:
     
     img_stack = np.array(img_list)
     mode_image = scipy.stats.mode(img_stack, axis=0)[0].astype(np.uint8)
     return mode_image
 
-def calc_kde_image(img_list: list[NDArray]) -> NDArray:
+def calc_kde_image(img_list: list[NDArray]) -> NDArray[np.uint8]:
     
     desired_n_px_for_kde = 1e6
     bandwidth = 10

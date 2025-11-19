@@ -19,8 +19,8 @@ if __name__ == "__main__":
     CLIARGS_SYNTH.sanitize()
     
     videos = gather_videos(CLIARGS_SYNTH)
-    for i, el in enumerate(videos):
+    for i, vid in enumerate(videos):
         print(f"element nr {i} in videos:")
-        print(el)
+        print(vid)
     
     print("done")

@@ -100,7 +100,7 @@ def plot_results(hs, ftot, fpsc, vidname, static_window: tuple[str, str]):
         gridwidth = GRDWIDTH,
         zerolinewidth = ZRLWIDTH,
         tickvals = np.linspace(t_steps.min(), t_steps.max(), n_tix),
-        ticktext = [sec_2_tstr(s) for s in np.linspace(0, ftot/fpsc, n_tix)],
+        ticktext = [sec_2_tstr(sc) for sc in np.linspace(0, ftot/fpsc, n_tix)],
     )
     
     fig.update_yaxes(row = 1, col = 1,

@@ -13,7 +13,7 @@ from .cliargs import ALLOWED_VIDEO_EXT
 def subgather_single(input_video_path: str, static_window: str | dict):
 
     cap = cv.VideoCapture(input_video_path)
-    
+
     # when dict (from read json) -----------------------------------------------
     if isinstance(static_window, dict):
         tstr = static_window[os.path.basename(input_video_path)] # only care about current video timestring
@@ -52,6 +52,7 @@ def subgather_single(input_video_path: str, static_window: str | dict):
         ftot=cap.get(cv.CAP_PROP_FRAME_COUNT),
         static_window=window_sec,
     )
+    cap.release()
     
     return [vid]
 

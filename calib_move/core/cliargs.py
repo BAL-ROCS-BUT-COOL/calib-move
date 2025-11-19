@@ -76,7 +76,7 @@ class CLIArgs:
         
         # video folder path ----------------------------------------------------
         elif os.path.isdir(self.input_video_path):
-            vids = [vn for xt in ALLOWED_VIDEO_EXT for vn in glob(os.path.join(self.input_video_path, f"*{xt}"))]
+            vids = [vd for xt in ALLOWED_VIDEO_EXT for vd in glob(os.path.join(self.input_video_path, f"*{xt}"))]
             if len(vids) == 0:
                 raise ValueError("found no valid video files in video folder!")
             else:
