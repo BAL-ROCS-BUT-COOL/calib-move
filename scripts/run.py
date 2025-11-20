@@ -1,8 +1,8 @@
 import os
 import sys
+from   pathlib import Path
 
-# TODO: watch out if this works if you run it like ./scripts/run.py and not just as ./run.py!
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
+sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1])) 
 import calib_move
 
 

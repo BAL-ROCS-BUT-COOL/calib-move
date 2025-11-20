@@ -1,7 +1,8 @@
 import os
 import sys
+from   pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1]))
 from calib_move.util.timestring import sec_2_tstr, tstr_2_sec
 
 

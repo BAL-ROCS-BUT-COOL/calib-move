@@ -1,179 +1,155 @@
 import numpy as np
 from   numpy.typing import NDArray
-import cv2 as cv
 import plotly.graph_objects as go
 from   plotly.subplots import make_subplots
 
-from   ..util.timestring import tstr_2_sec
 from   ..util.timestring import sec_2_tstr
+from .cliargs import CLIArgs
+from .videocontainer import VideoContainer
+from ..config.plotconfig import PlotConfig
+from ..util.plots import fig_2_numpy
 
 
-def fig_2_numpy(figure: go.Figure) -> NDArray:
-    fig_bytes = figure.to_image(format="png")
-    img_bytes = np.frombuffer(fig_bytes, np.uint8)
-    img = cv.imdecode(img_bytes, cv.IMREAD_UNCHANGED)
-    return img
-
-def plot_results(hs, ftot, fpsc, vidname, static_window: tuple[str, str]):
+def plot_video_ho(CLIARGS: CLIArgs, video: VideoContainer, CFG: PlotConfig) -> list[NDArray]:
     
-    flor_for_max_y_range = 50 # controlling how low the range of the y axis can go when automatically adjusting range
+    dat_msk = np.array(video.ho_errors) == 1
+    dat_ts = np.linspace(0, video.stot, CLIARGS.n_main_steps) # make this not masked, need last element for layout 
+    dat_x = np.where(dat_msk, np.nan, np.array(video.ho_arrays)[:, 0, 2])
+    dat_y = np.where(dat_msk, np.nan, np.array(video.ho_arrays)[:, 1, 2])
+    dat_abs = np.where(dat_msk, np.nan, np.sqrt(dat_x**2 + dat_y**2))
+    dat_abs_max = max(np.nanmax(dat_abs), CFG.MIN_YRANGE_AUTOMAX)
     
-    t_steps = np.linspace(0, ftot/fpsc, hs.shape[0]) # x axis is in seconds, assuming hs is at regular intervals + full!
-    abs_data = np.sqrt(hs[:, 0, 2]**2 + hs[:, 1, 2]**2)
-    abs_max = max(abs_data.max(), flor_for_max_y_range)
-    
-    TXTCOL = "rgba(20, 20, 20, 1.0)"
-
-    BKGCOL = "rgba(255, 255, 255, 0.0)"
-    
-    LINCOL = "rgba(255, 0, 0, 0.3)"
-    MRKCOL = "rgba(255, 0, 0, 1.0)"
-    
-    GRDCOL = "rgba(200, 200, 200, 1.0)"
-    ZRLCOL = GRDCOL
-    GRDWIDTH = 2.0
-    ZRLWIDTH = 5.0
     
     fig = make_subplots(
         rows=1, cols=2, 
-        column_widths = [0.78, 0.22], horizontal_spacing = 0.12,
-        shared_xaxes=False, shared_yaxes=False)
+        column_widths=CFG.SUBPLOT_COLWIDTHS, horizontal_spacing=CFG.SUBPLOT_SPACING,
+        shared_xaxes=False, shared_yaxes=False
+    )
     
-    fig.add_trace(go.Scatter( # main plot
-        x = t_steps,
-        y = abs_data,
-        mode = "lines+markers",
-        line = dict(color = LINCOL, width = 3, dash = "dot"),
-        marker = dict(color = MRKCOL, symbol = "square", size = 8),
-    ), row = 1, col = 1)
+    # plotting ---------------------------------------------------------------------------------------------------------
     
-    fig.add_trace(go.Scatter( # cosmetic bar
-        x = [t_steps.max(), t_steps.max()],
-        y = [-0.1*abs_max, 1.2*abs_max],
-        mode = "lines",
-        line = dict(color = ZRLCOL, width = ZRLWIDTH),
-        zorder = -1
-    ), row = 1, col = 1)
-    
-    fig.add_shape(row = 1, col = 1, # static window box
-        type = "rect",
-        x0 = tstr_2_sec(static_window[0]), y0 = -0.05*abs_max,
-        x1 = tstr_2_sec(static_window[1]), y1 = 1.05*abs_max,
-        layer = "below",
-        line = dict(width = 0),
-        fillcolor = "rgba(144, 213, 255, 0.33)"
+    # plot 1: time series ------------------------------------------------------
+    fig.add_trace(go.Scatter( # main timeseries plot
+        x=dat_ts, y=dat_abs,
+        mode="lines+markers", connectgaps=True,
+        line=dict(color=CFG.LINCOL, width=CFG.LINWIDTH, dash="dot"),
+        marker=dict(color=CFG.MRKCOL, size=CFG.MRKSIZE, symbol="square"),
+    ), row=1, col=1)
+    fig.add_trace(go.Scatter( # cosmetic bar right side end
+        x=[dat_ts[-1], dat_ts[-1]], y=[-(CFG.PADD_ABS)*dat_abs_max, (1+CFG.PADD_ABS)*dat_abs_max],
+        mode="lines",
+        line=dict(color=CFG.ZRLCOL, width=CFG.ZRLWIDTH),
+        zorder=-1
+    ), row=1, col=1)
+    fig.add_shape( # static window box
+        type="rect",
+        x0=video.static_window[0], y0=-(CFG.PADD_ABS/2)*dat_abs_max,
+        x1=video.static_window[1], y1=(1+CFG.PADD_ABS/2)*dat_abs_max,
+        line=dict(width=0),
+        fillcolor=CFG.WDWCOL,
+        layer="below",
+    row=1, col=1)
+
+    # plot 2: xy scatter -------------------------------------------------------
+    fig.add_trace(go.Scatter( # main scatterplot
+        x=dat_x, y=dat_y,
+        mode="markers",
+        marker=dict(color=CFG.MRKCOL, size=CFG.MRKSIZE, symbol="circle", ),
+    ), row=1, col=2)
+    fig.add_shape(row=1, col=2, # outer circle
+        type="circle", 
+        x0=-dat_abs_max, y0=-dat_abs_max,
+        x1=dat_abs_max, y1=dat_abs_max,
+        layer="below",
+        line=dict(color=CFG.GRDCOL, width=CFG.GRDWIDTH)  
+    )
+    fig.add_shape(row=1, col=2, # inner circle
+        type="circle", 
+        x0=-dat_abs_max/2, y0=-dat_abs_max/2,
+        x1=dat_abs_max/2, y1=dat_abs_max/2,
+        layer="below",
+        line=dict(color=CFG.GRDCOL, width=CFG.GRDWIDTH)
         
     )
-    
-    fig.add_trace(go.Scatter( # point scatter x-y
-        x = hs[:, 0, 2],
-        y = hs[:, 1, 2],
-        mode = "markers",
-        marker = dict(color = MRKCOL, symbol = "circle", size = 3),
-    ), row = 1, col = 2)
-    
-    fig.add_shape(row = 1, col = 2, # outer circle
-        type = "circle", 
-        x0 = -abs_max, y0 = -abs_max,
-        x1 =  abs_max, y1 =  abs_max,
-        layer = "below",
-        line = dict(color = GRDCOL, width = GRDWIDTH)  
-    )
-    
-    fig.add_shape(row = 1, col = 2, # inner circle
-        type = "circle", 
-        x0 = -abs_max/2, y0 = -abs_max/2,
-        x1 =  abs_max/2, y1 =  abs_max/2,
-        layer = "below",
-        line = dict(color = GRDCOL, width = GRDWIDTH)
-        
-    )
-    
-    # subplot 1 ----------------------------------------------------------------
-    n_tix = 6
-    fig.update_xaxes( row = 1, col = 1,
-        range = [-0.04*t_steps.max(), 1.04*t_steps.max()],
-        showgrid = True,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickvals = np.linspace(t_steps.min(), t_steps.max(), n_tix),
-        ticktext = [sec_2_tstr(sc) for sc in np.linspace(0, ftot/fpsc, n_tix)],
-    )
-    
-    fig.update_yaxes(row = 1, col = 1,
-        range = [-0.1*abs_max, 1.1*abs_max],
-        showgrid = True,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickformat = ".1~s",
-        tickvals = np.linspace(0, abs_max, 4), 
-    )
-    
-    # subplot 2 ----------------------------------------------------------------
-    fig.update_xaxes(row = 1, col = 2,
-        range = [-1.1*abs_max, 1.1*abs_max],
-        constrain = "domain",
-        scaleanchor = "y2", # watch out, needs the y axis from the second plot as scaleanchor!
-        showgrid = False,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickformat = ".1~s",
-        tickvals = np.linspace(-abs_max, abs_max, 3)
-    )
-    
-    fig.update_yaxes(row = 1, col = 2,
-        range = [-1.1*abs_max, 1.1*abs_max],
-        constrain = "domain",
-        showgrid = False,
-        zeroline = True,
-        gridcolor = GRDCOL,
-        zerolinecolor = ZRLCOL,
-        gridwidth = GRDWIDTH,
-        zerolinewidth = ZRLWIDTH,
-        tickformat = ".1~s",
-        tickvals = np.linspace(-abs_max, abs_max, 5)
-    )
+
+    # layouting --------------------------------------------------------------------------------------------------------
     
     # general layout -----------------------------------------------------------
-    fig.update_layout(
-        title = dict(
-            text = f"plot for: <b>{vidname}</b>", 
-            x = 0.015, y = 0.92, xref = "container", yref = "container", xanchor = "left", yanchor="top",
-            font_size = 20),
-        paper_bgcolor = BKGCOL,
-        plot_bgcolor = BKGCOL,
-        font = dict(family = "JetBrains Mono", size = 16, color = TXTCOL),
-        width = 1200,
-        height = 300,
-        margin = dict(l = 70+20, r = 20, t = 45+20, b = 20, pad = 5),
-        showlegend = False
+    fig.update_layout( # layout for all plots
+        width=CFG.RES_HW[1], height=CFG.RES_HW[0],
+        title=dict(
+            text=f"plot for: <b>{video.name}</b>", 
+            font_size=CFG.FNTSIZE_TITLE,
+            x=CFG.TITLE_MAIN_XY[0], y=CFG.TITLE_MAIN_XY[1], 
+            xref="container", yref="container", xanchor="left", yanchor="top",
+        ),
+        paper_bgcolor=CFG.BKGCOL, plot_bgcolor=CFG.BKGCOL,
+        font=dict(family="JetBrains Mono", size=CFG.FNTSIZE_PLOT, color=CFG.TXTCOL),
+        margin=CFG.MARGIN,
+        showlegend=False,
+    )
+    fig.add_annotation( # artificial axis title for timeseries plot
+        text="<b>|x, y| movement [px]</b>", font_size=CFG.FNTSIZE_PLOT, textangle=-90,
+        x=CFG.TITLE_P1_XY[0], y=CFG.TITLE_P1_XY[1], xref="paper", yref="paper", xanchor="left", yanchor="middle",
+        showarrow=False,
+    )
+    fig.add_annotation( # artificial axis title for scatterplot
+        text="<b> (x, y) movement [px]</b>", font_size=CFG.FNTSIZE_PLOT, textangle=-90,
+        x=CFG.TITLE_P2_XY[0], y=CFG.TITLE_P2_XY[1], xref="paper", yref="paper", xanchor="left", yanchor="middle",
+        showarrow=False,
     )
     
-    fig.add_annotation(
-        text = "<b>|x, y| movement [px]</b>", font_size = 16, textangle = -90,
-        x = -0.07, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
-        showarrow = False,
+    # plot 1 layout -----------------------------------------------------------
+    fig.update_xaxes( row=1, col=1,
+        range=[-(CFG.PADD_TS)*dat_ts[-1], (CFG.PADD_TS+1)*dat_ts[-1]],
+        showgrid=True,
+        zeroline=True,
+        gridcolor=CFG.GRDCOL,
+        zerolinecolor=CFG.ZRLCOL,
+        gridwidth=CFG.GRDWIDTH,
+        zerolinewidth=CFG.ZRLWIDTH,
+        tickvals=np.linspace(dat_ts[0], dat_ts[-1], CFG.NTIX_TS),
+        ticktext=[sec_2_tstr(sc) for sc in np.linspace(0, video.stot, CFG.NTIX_TS)],
+    )
+    fig.update_yaxes(row=1, col=1,
+        range=[-(CFG.PADD_ABS)*dat_abs_max, (CFG.PADD_ABS+1)*dat_abs_max],
+        showgrid=True,
+        zeroline=True,
+        gridcolor=CFG.GRDCOL,
+        zerolinecolor=CFG.ZRLCOL,
+        gridwidth=CFG.GRDWIDTH,
+        zerolinewidth=CFG.ZRLWIDTH,
+        tickformat=".1~s",
+        tickvals=np.linspace(0, dat_abs_max, CFG.NTIX_ABS), 
     )
     
-    fig.add_annotation(
-        text = "<b> (x, y) movement [px]</b>", font_size = 16, textangle = -90,
-        x = 0.74, y = 0.5, xref = "paper", yref = "paper", xanchor = "left", yanchor="middle",
-        showarrow = False,
+    # plot 2 layout -----------------------------------------------------------
+    fig.update_xaxes(row=1, col=2,
+        range=[-(CFG.PADD_X+1)*dat_abs_max, (CFG.PADD_X+1)*dat_abs_max],
+        constrain="domain",
+        scaleanchor="y2", # watch out, needs the y axis from the second plot as scaleanchor!
+        showgrid=False,
+        zeroline=True,
+        gridcolor=CFG.GRDCOL,
+        zerolinecolor=CFG.ZRLCOL,
+        gridwidth=CFG.GRDWIDTH,
+        zerolinewidth=CFG.ZRLWIDTH,
+        tickformat=".1~s",
+        tickvals=np.linspace(-dat_abs_max, dat_abs_max, CFG.NTIX_X)
     )
-    
-    fig.show() # only for debug
-    
-    return fig_2_numpy(fig) 
- 
- 
- 
+    fig.update_yaxes(row=1, col=2,
+        range=[-(CFG.PADD_Y+1)*dat_abs_max, (CFG.PADD_Y+1)*dat_abs_max],
+        constrain="domain",
+        showgrid=False,
+        zeroline=True,
+        gridcolor=CFG.GRDCOL,
+        zerolinecolor=CFG.ZRLCOL,
+        gridwidth=CFG.GRDWIDTH,
+        zerolinewidth=CFG.ZRLWIDTH,
+        tickformat=".1~s",
+        tickvals=np.linspace(-dat_abs_max, dat_abs_max, CFG.NTIX_Y)
+    )
+
+    return [fig_2_numpy(fig)]
+
  

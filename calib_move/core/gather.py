@@ -10,7 +10,8 @@ from .cliargs import CLIArgs
 from .cliargs import ALLOWED_VIDEO_EXT
 
 
-def subgather_single(input_video_path: str, static_window: str | dict):
+# TODO: use pathlib Path EVERYWHERE
+def subgather_single(input_video_path: str, static_window: str | dict) -> list[VideoContainer]:
 
     cap = cv.VideoCapture(input_video_path)
 
@@ -56,7 +57,7 @@ def subgather_single(input_video_path: str, static_window: str | dict):
     
     return [vid]
 
-def subgather_multi(input_video_path: str, static_window: str | dict):
+def subgather_multi(input_video_path: str, static_window: str | dict) -> list[VideoContainer]:
     
     videos = []
     videos_paths = [vd for xt in ALLOWED_VIDEO_EXT for vd in glob(os.path.join(input_video_path, f"*{xt}"))]
@@ -65,7 +66,7 @@ def subgather_multi(input_video_path: str, static_window: str | dict):
 
     return videos
 
-def gather_videos(CLIARGS: CLIArgs):
+def gather_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
     
     # single video -------------------------------------------------------------
     if os.path.isfile(CLIARGS.input_video_path):

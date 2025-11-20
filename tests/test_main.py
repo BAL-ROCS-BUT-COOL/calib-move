@@ -1,7 +1,8 @@
 import os
 import sys
+from   pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1]))
 from calib_move.main import main_func
 
 
@@ -11,6 +12,6 @@ if __name__ == "__main__":
     argv = [
         "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/",
         # "--static-window", "H:/code_elias/balgrist-calib-move/tests/test_static_window_template.json"
-        "--static-window", "START-00:02:00",
+        "--static-window", "START-00:03:00",
     ]
     main_func(argv=argv)

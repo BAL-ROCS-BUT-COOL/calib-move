@@ -7,7 +7,7 @@ from   numpy.typing import NDArray
 class VideoContainer:
     # TODO: rename this stuff a bit
     
-    path: str
+    path: str #TODO: make this path object (any anywhere else)
     fpsc: float
     ftot: int
     

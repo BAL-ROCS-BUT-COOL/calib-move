@@ -1,11 +1,11 @@
-import os 
+import os
 import sys
+from   pathlib import Path
 import json
 from   glob import glob
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1]))
 from   calib_move.core.generatejson import main_generate_json
-
 
 
 if __name__ == "__main__":

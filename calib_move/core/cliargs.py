@@ -16,6 +16,8 @@ import tyro
 ALLOWED_VIDEO_EXT = [".mp4"] # TODO: check what even works with cv2, maybe move to one "param file"
 
 class KeypointDetector(Enum):
+    # TODO: don't instantiate here!
+    # TODO move to config
     AKAZE = cv.AKAZE_create()
     SIFT  = cv.SIFT_create()
     ORB   = cv.ORB_create()
@@ -25,6 +27,8 @@ class KeypointDetector(Enum):
         return self.value
 
 class KeypointMatcher(Enum):
+    # TODO: don't instantiate here!
+    # TODO: move to config
     BF_NORM_L2 = cv.BFMatcher(cv.NORM_L2, crossCheck=True) # good for SIFT, SURF
     BF_NORM_HAMM = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True) #good for binary desc ORB, AKAZE, BRISK
 
@@ -33,6 +37,7 @@ class KeypointMatcher(Enum):
         return self.value
     
 class InitFrameBlending(Enum):
+    # TODO: move to config
     MEDIAN = "MEDIAN"
     MODE   = "MODE"
     KDE    = "KDE"
