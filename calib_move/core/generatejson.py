@@ -2,10 +2,10 @@ import os
 from   glob import glob
 import tyro
 
-from   .cliargs import ALLOWED_VIDEO_EXT
+from ..config.coreconfig import ALLOWED_VIDEO_EXT
 from ..util.jsonio import str_2_json
 
-
+# TODO: use root as base
 GEN_TEMPLATE_JSON_PATH = "scripts/static_window_template.json" # TODO: also move to config param file
 
 def generate_template_json(vid_folder_path: str):

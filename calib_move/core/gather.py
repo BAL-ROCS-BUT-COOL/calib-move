@@ -8,7 +8,8 @@ from ..util.timestring import tstr_2_sec
 from ..util.jsonio import json_2_dict
 from .videocontainer import VideoContainer
 from .cliargs import CLIArgs
-from .cliargs import ALLOWED_VIDEO_EXT
+
+from ..config.coreconfig import ALLOWED_VIDEO_EXT
 
 
 # TODO: use pathlib Path EVERYWHERE

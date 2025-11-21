@@ -11,11 +11,12 @@ from ..util.imgblending import calc_mode_image
 from ..util.imgblending import calc_kde_image
 from ..util.jsonio import json_2_dict
 
+from ..config.coreconfig import ALLOWED_VIDEO_EXT
+
 from typing import Annotated
 import tyro
 
 
-ALLOWED_VIDEO_EXT = [".mp4"] # TODO: check what even works with cv2, maybe move to one "param file" / config rather
 
 class KeypointDetector(Enum):
     # TODO: don't instantiate here!
@@ -36,8 +37,7 @@ class KeypointMatcher(Enum):
     
     # BF_NORM_L2 = cv.BFMatcher(cv.NORM_L2, crossCheck=True) # good for SIFT, SURF
     # BF_NORM_HAMM = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True) #good for binary desc ORB, AKAZE, BRISK
-
-    @property
+    
     def v(self):
         cls, args, kwargs = self.value
         return cls(*args, **kwargs)
