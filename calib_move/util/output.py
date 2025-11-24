@@ -3,6 +3,8 @@ import time
 import os
 
 
+# TODO: docs!
+
 def trunc_str(name: str, n: int) -> str:
     if len(name) > n:
         return name[0:n-1] + "…"

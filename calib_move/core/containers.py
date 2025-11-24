@@ -1,78 +1,43 @@
-import os
 import re
-from   dataclasses import dataclass
-from   enum import Enum
-import cv2 as cv
-from   glob import glob
+from   dataclasses import dataclass, field
 from   pathlib import Path
+from   typing import Annotated
+from   numpy.typing import NDArray
+import tyro
 
-from ..util.imgblending import calc_median_image
-from ..util.imgblending import calc_mode_image
-from ..util.imgblending import calc_kde_image
 from ..util.jsonio import json_2_dict
 
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
-
-from typing import Annotated
-import tyro
-
-
-
-class KeypointDetector(Enum):
-    # TODO: don't instantiate here!
-    # TODO move to config
-    AKAZE = cv.AKAZE_create
-    SIFT  = cv.SIFT_create
-    ORB   = cv.ORB_create
-    
-    @property
-    def v(self):
-        return self.value
-
-class KeypointMatcher(Enum):
-    # TODO: don't instantiate here!
-    # TODO: move to config
-    BF_NORM_L2 = (cv.BFMatcher, (cv.NORM_L2, ), {"crossCheck": True})
-    BF_NORM_HAMM = (cv.BFMatcher, (cv.NORM_HAMMING, ), {"crossCheck": True})
-    
-    # BF_NORM_L2 = cv.BFMatcher(cv.NORM_L2, crossCheck=True) # good for SIFT, SURF
-    # BF_NORM_HAMM = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True) #good for binary desc ORB, AKAZE, BRISK
-    
-    def v(self):
-        cls, args, kwargs = self.value
-        return cls(*args, **kwargs)
-    
-class InitFrameBlending(Enum):
-    # TODO: move to config
-    MEDIAN = "MEDIAN"
-    MODE   = "MODE"
-    KDE    = "KDE"
-    
-    @property
-    def v(self):
-        # cannot use self.value here -> recursion
-        match self.value:
-            case "MEDIAN":
-                return calc_median_image
-            case "MODE":
-                return calc_mode_image
-            case "KDE":
-                return calc_kde_image
+from ..config.coreconfig import InitFrameBlending
+from ..config.coreconfig import KeypointDetector
+from ..config.coreconfig import KeypointMatcher
 
 
 @dataclass(frozen=True)
 class CLIArgs:
     # TODO: rename this stuff a bit
+    # TODO: more doc
 
     input_video_path: Annotated[Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path}")]
+    """ path to one video or a folder containing at least one video which should be analyized. """
+    
     static_window: Annotated[str, tyro.conf.arg(metavar="{START-hh:mm:ss,hh:mm:ss-END,hh:mm:ss-hh:mm:ss,<json-path>}",)]
+    """ a certain part of the video, relative to which the homographies are estimated. can be specified explicitly via three string options or via a json file (for specifying different windows for multiple videos). """
     
     n_init_steps: int = 5
-    init_frame_blending: InitFrameBlending = InitFrameBlending.KDE
+    """ number of equally spaced steps (in the static window) for which frames are extracted and combined to form one good reference image without moving elements. the homography is estimated relative to this static image for all other parts of the video. """
     
+    init_frame_blending: InitFrameBlending = InitFrameBlending.KDE
+    """ method for combining multiple frames (from the static window) to ideally remove moving elements. """
+
     n_main_steps: int = 10
+    """ number of equally spaced steps (in the input video) for which the homography is estimated relative to the static frame. """
+    
     detector: KeypointDetector = KeypointDetector.AKAZE
+    """ cv2 keypoint detector type. """
+    
     matcher: KeypointMatcher   = KeypointMatcher.BF_NORM_HAMM
+    """ cv2 keypoint matching type. (L2 is good for SIFT or SURF, HAMMING is good for binary descriptors e.g. ORB AKAZE or BRISK). """
 
     def _sanitize_input_video_path(self) -> None:
 
@@ -166,6 +131,57 @@ class CLIArgs:
         
         self._sanitize_input_video_path()
         self._sanitize_static_window()
+
+
+@dataclass
+class VideoContainer:
+    # TODO: rename this stuff a bit
+    # TODO: add doc
+
+    path: Path
+    fpsc: float
+    ftot: int
+
+    static_window: tuple[float, float] # [start_second, end_second]
+
+    ho_arrays: list[NDArray] = field(default_factory=list)
+    ho_errors: list[bool] = field(default_factory=list)
+
+    @property
+    def stot(self):
+        return self.ftot / self.fpsc
+
+    @property
+    def name(self):
+        return self.path.name
+
+    def sanitize(self, CLIARGS: CLIArgs):
+
+        # framerate valid?
+        if self.fpsc <= 0:
+            raise ValueError(f"framerate ({self.fpsc=}) <= 0! ({self.name})")
+        # n total frames valid?
+        if self.fpsc <= 0:
+            raise ValueError(f"total number of frames ({self.ftot=}) <= 0! ({self.name})")
+
+        # window start and end switched
+        if self.static_window[0] >= self.static_window[1]:
+            raise ValueError(f"window specs invalid, start later than end ({self.static_window=})! ({self.name})")
+
+        # window starts before 0
+        if self.static_window[0] < 0:
+            raise ValueError(f"window starts too early ({self.static_window=})! {(self.name)}")
+
+        # window ends after video duration
+        if self.static_window[1] > self.stot:
+            raise ValueError(f"window ends after video end ({self.static_window=})! ({self.name})")
+
+        # video is way too short for the amount of main steps
+        if self.ftot < 3*CLIARGS.n_main_steps:
+            raise ValueError(f"{CLIARGS.n_main_steps=} too large for video with only {self.ftot=}! ({self.name})")
+
+        if (self.static_window[1] - self.static_window[0]) * self.fpsc < 3*CLIARGS.n_init_steps:
+            raise ValueError(f"{CLIARGS.n_init_steps=} too large for window of ({self.static_window=})! ({self.name})")
         
         
 

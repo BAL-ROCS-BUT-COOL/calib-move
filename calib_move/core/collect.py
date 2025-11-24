@@ -1,26 +1,24 @@
-import os
 import re
 import cv2 as cv
-from   glob import glob
 from   pathlib import Path
 
 from ..util.timestring import tstr_2_sec
 from ..util.jsonio import json_2_dict
-from .videocontainer import VideoContainer
-from .cliargs import CLIArgs
+from .containers import VideoContainer
+from .containers import CLIArgs
 
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
 
 
 # TODO: use pathlib Path EVERYWHERE
-def subgather_single(vid_path: Path, window: str | dict) -> list[VideoContainer]:
+def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer]:
 
     cap = cv.VideoCapture(vid_path)
     
     if isinstance(window, dict):
         window = window[vid_path.name] # only care about current video timestring
 
-    # from now on, window is alway just a string
+    # from here on on, window is alway just a string (and not possibly a json)
     
     # when string START-hh:mm:ss -----------------------------------------------    
     if len(re.findall(r"START-\d\d:\d\d:\d\d", window)) > 0:
@@ -56,16 +54,16 @@ def subgather_single(vid_path: Path, window: str | dict) -> list[VideoContainer]
     
     return [vid]
 
-def subgather_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContainer]:
+def subcollect_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContainer]:
     
     videos = []
     videos_paths = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in CLIARGS.input_video_path.glob(f"*{xt}")]
     for vid_path in videos_paths:
-        videos += subgather_single(vid_path, window)
+        videos += subcollect_single(vid_path, window)
 
     return videos
 
-def gather_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
+def collect_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
     
     # single video -----------------------------------------------------------------------------------------------------
     if CLIARGS.input_video_path.is_file():
@@ -75,7 +73,7 @@ def gather_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
         # window string --------------------------------------------------------
         else:
             window = CLIARGS.static_window
-        videos = subgather_single(CLIARGS.input_video_path, window)      
+        videos = subcollect_single(CLIARGS.input_video_path, window)      
     
     # video folder -----------------------------------------------------------------------------------------------------
     else:
@@ -85,7 +83,6 @@ def gather_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
         # window string --------------------------------------------------------
         else:
             window = CLIARGS.static_window
-        videos = subgather_multi(CLIARGS, window)
+        videos = subcollect_multi(CLIARGS, window)
 
     return videos # always just return a list of VideoContainers, even if it's just one video
-

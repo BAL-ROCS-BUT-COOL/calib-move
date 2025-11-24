@@ -2,13 +2,16 @@ import os
 from   glob import glob
 import tyro
 
+from ..config.coreconfig import ROOT
+from ..config.coreconfig import TEMPLATE_JSON_PATH
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
+
 from ..util.jsonio import str_2_json
 
-# TODO: use root as base
-GEN_TEMPLATE_JSON_PATH = "scripts/static_window_template.json" # TODO: also move to config param file
 
 def generate_template_json(vid_folder_path: str):
+    # TODO: add more docs
+    
     # create a template json from a folder with all video of type "ALLOWED_VIDEO_EXT"
     vid_glob = [vd for xt in ALLOWED_VIDEO_EXT for vd in glob(os.path.join(vid_folder_path, f"*{xt}"))]
     vid_dict = {f"{os.path.basename(vd)}": "hh:mm:ss-hh:mm:ss" for vd in vid_glob}
@@ -28,7 +31,7 @@ def generate_template_json(vid_folder_path: str):
     lines[-1] = lines[-1].strip(",")
     lines.append("}")
     
-    str_2_json(GEN_TEMPLATE_JSON_PATH, "\n".join(lines))
+    str_2_json(ROOT/TEMPLATE_JSON_PATH/"static_window_template.json", "\n".join(lines))
         
 def main_generate_json(argv=None):
-    CLIARGS_GEN_JSON = tyro.cli(generate_template_json, args=argv) # also calls the function!
+    tyro.cli(generate_template_json, args=argv) # also calls the function!

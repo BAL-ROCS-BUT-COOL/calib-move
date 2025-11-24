@@ -8,13 +8,14 @@ import numpy as np
 import cv2 as cv
 import tyro
 
-from .core.cliargs import CLIArgs
-from .core.gather import gather_videos
+from .core.containers import CLIArgs
+from .core.collect import collect_videos
 from .core.homographies import process_video_ho
 from .core.plotting import plot_video_ho
 
 from .config.plotconfig import PlotConfig
 from .config.coreconfig import ROOT
+from .config.coreconfig import PLOT_OUTPUT_DIR
 
 from .util.output import pbar
 
@@ -27,7 +28,7 @@ def main_func(argv=None):
     CLIARGS.sanitize()
     
     # gather data --------------------------------------------------------------
-    videos = gather_videos(CLIARGS)
+    videos = collect_videos(CLIARGS)
     for vd in videos:
         vd.sanitize(CLIARGS)
         
@@ -42,7 +43,7 @@ def main_func(argv=None):
     
     # stitch all plots together and save ---------------------------------------
     plots = eo.rearrange(np.array(plots), "B h w c -> (B h) w c")
-    cv.imwrite(ROOT/"tests/stitched_plots.png", plots)
+    cv.imwrite(ROOT/PLOT_OUTPUT_DIR/"plot_results.png", plots)
 
  
     

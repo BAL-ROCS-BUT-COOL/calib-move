@@ -2,8 +2,8 @@ import numpy as np
 from   numpy.typing import NDArray
 import cv2 as cv
 
-from .cliargs import CLIArgs
-from .videocontainer import VideoContainer
+from .containers import CLIArgs
+from .containers import VideoContainer
 
 from ..util.output import pbar
 

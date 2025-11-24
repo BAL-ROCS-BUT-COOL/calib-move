@@ -3,21 +3,25 @@ import sys
 from   pathlib import Path
 import cv2 as cv
 
-sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1])) 
+sys.path.append(os.path.normcase(Path(__file__).resolve().parents[2])) 
 from calib_move.main import process_video_ho
-from calib_move.core.cliargs import CLIArgs
-from calib_move.core.videocontainer import VideoContainer
+from calib_move.core.containers import CLIArgs
+from calib_move.core.containers import VideoContainer
 
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
+    # setup some dummy cli args (need the matcher, detector and n_steps)
     CLIARGS_SYNTH = CLIArgs(
         input_video_path="not important here (infos in VideoContainer)",
         static_window="not important here either (infos in VideoContainer)"
     )
 
-    vid = "H:/code_elias/random_scrips_balgrist/test_videos/vid_2.mp4"
+    # path to a video that should be processed
+    vid = Path("H:/code_elias/random_scrips_balgrist/test_videos/vid_2.mp4")
+    
+    # setup a prototypical video container
     cap = cv.VideoCapture(vid)
     video = VideoContainer(
         path=vid,
@@ -27,8 +31,6 @@ if __name__ == "__main__":
     )
     cap.release()
 
-    print(video)
+    # processing one video: finding initial frame and homographies for the rest
     process_video_ho(CLIARGS_SYNTH, video)
     print(video)
-    
-    print("done")

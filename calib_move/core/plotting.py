@@ -3,9 +3,9 @@ from   numpy.typing import NDArray
 import plotly.graph_objects as go
 from   plotly.subplots import make_subplots
 
-from   ..util.timestring import sec_2_tstr
-from .cliargs import CLIArgs
-from .videocontainer import VideoContainer
+from ..util.timestring import sec_2_tstr
+from .containers import CLIArgs
+from .containers import VideoContainer
 from ..config.plotconfig import PlotConfig
 from ..util.plot import fig_2_numpy
 

@@ -1,2 +1,2 @@
 from . import main
-from .core import generatejson
+from .core import jsontemplate

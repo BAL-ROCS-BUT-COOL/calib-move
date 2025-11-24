@@ -2,8 +2,9 @@ import cv2 as cv
 import numpy as np
 from   numpy.typing import NDArray
 import scipy.stats
-from   typing import Annotated
 
+
+# TODO: docs!
 
 def calc_median_image(img_list: list[NDArray]) -> NDArray[np.uint8]:
     
