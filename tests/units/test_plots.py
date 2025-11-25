@@ -5,14 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2 as cv
 
-sys.path.append(os.path.normcase(Path(__file__).resolve().parents[2]))
+# for testing, insert package into path to make sure that the local folder is used!
+sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[2]))
 from calib_move.core.containers import CLIArgs
 from calib_move.core.containers import VideoContainer
 from calib_move.config.plotconfig import PlotConfig
 from calib_move.config.coreconfig import ROOT
 from calib_move.config.coreconfig import PLOT_OUTPUT_DIR
-
-from calib_move.core.plotting import plot_video_ho
+from calib_move.core.plotting import plot_video
 
 
 if __name__ == "__main__":
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     CFG = PlotConfig
     
     # create the plot and save it (note this returns a png of the plot and not the plotly figure)
-    [fig_png] = plot_video_ho(CLIARGS_SYNTH, video, CFG)
+    [fig_png] = plot_video(CLIARGS_SYNTH, video, CFG)
     cv.imwrite(ROOT/PLOT_OUTPUT_DIR/"plot_test.png", fig_png)
     
     # also show in window for debugging
