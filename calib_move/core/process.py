@@ -89,14 +89,17 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
     
     return ho_arrays, ho_errors
 
-def process_video_ho(CLIARGS: CLIArgs, video: VideoContainer) -> None:
+def process_video(CLIARGS: CLIArgs, video: VideoContainer) -> None:
     
+    # setup the frame indices for the static window and the whole video 
     fidx_init = np.linspace(*video.static_window, CLIARGS.n_init_steps) * video.fpsc
     fidx_init = np.clip(fidx_init, a_min=0, a_max=video.ftot-1).astype(np.int64)
     fidx_main = np.linspace(0, video.ftot-1, CLIARGS.n_main_steps).astype(np.int64) # cv2 frame index starts @ 0!
 
+    # generate the reference frame by blending multiple images from the static window
     static_frame = generate_static_frame(CLIARGS, video, fidx_init)
 
+    # estimate the homography relative to the static frame for all other step in the whole video
     ho_arrays, ho_errors = calculate_homographies(CLIARGS, video, static_frame, fidx_main)
     video.ho_arrays = ho_arrays
     video.ho_errors = ho_errors

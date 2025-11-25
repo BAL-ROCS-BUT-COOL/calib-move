@@ -1,11 +1,10 @@
 import os
 import sys
 from   pathlib import Path
-import json
-from   glob import glob
 
-sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1]))
-from   calib_move.core.jsontemplate import main_generate_json
+# for testing, insert package into path to make sure that the local folder is used!
+sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[1]))
+from calib_move.core.jsontemplate import main_generate_json
 
 
 if __name__ == "__main__":

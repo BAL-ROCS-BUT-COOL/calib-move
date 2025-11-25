@@ -10,7 +10,7 @@ from ..config.plotconfig import PlotConfig
 from ..util.plot import fig_2_numpy
 
 
-def plot_video_ho(CLIARGS: CLIArgs, video: VideoContainer, CFG: PlotConfig) -> list[NDArray]:
+def plot_video(CLIARGS: CLIArgs, video: VideoContainer, CFG: PlotConfig) -> list[NDArray]:
     
     dat_msk = np.array(video.ho_errors) == 1
     dat_ts = np.linspace(0, video.stot, CLIARGS.n_main_steps) # make this not masked, need last element for layout 

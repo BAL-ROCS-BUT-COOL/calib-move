@@ -3,8 +3,9 @@ import sys
 from   pathlib import Path
 import cv2 as cv
 
-sys.path.append(os.path.normcase(Path(__file__).resolve().parents[2])) 
-from calib_move.main import process_video_ho
+# for testing, insert package into path to make sure that the local folder is used!
+sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[2]))
+from calib_move.main import process_video
 from calib_move.core.containers import CLIArgs
 from calib_move.core.containers import VideoContainer
 
@@ -32,5 +33,5 @@ if __name__ == "__main__":
     cap.release()
 
     # processing one video: finding initial frame and homographies for the rest
-    process_video_ho(CLIARGS_SYNTH, video)
+    process_video(CLIARGS_SYNTH, video)
     print(video)

@@ -19,3 +19,8 @@ dependencies = [
 Homepage = "https://github.com/eliassteiner1/balgrist-calib-move"
 
 [project.scripts]
+calib-move-run = "calib_move.main:main_func"
+calib-move-generate-template-json = "calib_move.core.jsontemplate:main_generate_json"
+
+[tool.setuptools.packages.find]
+include = ["calib_move", "calib_move.*"]

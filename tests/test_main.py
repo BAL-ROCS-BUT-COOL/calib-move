@@ -2,7 +2,8 @@ import os
 import sys
 from   pathlib import Path
 
-sys.path.append(os.path.normcase(Path(__file__).resolve().parents[1]))
+# for testing, insert package into path to make sure that the local folder is used!
+sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[1]))
 from calib_move.main import main_func
 
 

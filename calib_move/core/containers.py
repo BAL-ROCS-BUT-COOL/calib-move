@@ -132,7 +132,6 @@ class CLIArgs:
         self._sanitize_input_video_path()
         self._sanitize_static_window()
 
-
 @dataclass
 class VideoContainer:
     # TODO: rename this stuff a bit
