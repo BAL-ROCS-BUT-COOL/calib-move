@@ -6,7 +6,7 @@ from ..config.coreconfig import ROOT
 from ..config.coreconfig import TEMPLATE_JSON_PATH
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
 
-from ..util.jsonio import str_2_json
+from ..util.util import str_2_json
 
 
 def generate_template_json(vid_folder_path: str):

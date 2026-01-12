@@ -11,15 +11,20 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
     argv = [
+
         # specify some input video or folder containing at least one viceo
-        "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/",
+        "--input-video-path", 
+        "H:/code_elias/random_scrips_balgrist/test_videos/",
         
-        "--static-window", "H:/code_elias/balgrist-calib-move/tests/test_main.json",
-        # "--static-window", "00:00:30-00:03:00",
-        # "--static-window", "START-00:03:00"
+        "--static-window", 
+        "START-00:03:00",
+        # "H:/code_elias/balgrist-calib-move/tests/test_main.json",
         
-        "--n_init-steps", "10",
-        "--n_main-steps", "30",
+        "--n_init-steps", "8",
+        "--n_main-steps", "15",
+        
+        "--detector", "AKAZE",
+        "--matcher", "BF_NORM_HAMM",
     ]
     
     main_func(argv=argv)

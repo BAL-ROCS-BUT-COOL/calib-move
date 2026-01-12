@@ -1,6 +1,8 @@
 from   pathlib import Path
 from   enum import Enum
 import cv2 as cv
+import numpy as np
+from   numpy.typing import NDArray
 
 from ..util.imgblending import calc_median_image
 from ..util.imgblending import calc_mode_image
@@ -17,39 +19,43 @@ ALLOWED_VIDEO_EXT = {".mp4"} # TODO: check what even works with cv2, maybe move 
 
 # all available cv2 detector types
 class KeypointDetector(Enum):
-    AKAZE = cv.AKAZE_create
-    SIFT  = cv.SIFT_create
-    ORB   = cv.ORB_create
+    AKAZE = {"callable": cv.AKAZE_create} 
+    SIFT  = {"callable": cv.SIFT_create} 
+    ORB   = {"callable": cv.ORB_create} 
     
-    @property
-    def v(self):
-        return self.value
+    def instantiate(self):
+        return self.value["callable"]()
 
 # all available cv2 matcher types
 class KeypointMatcher(Enum):
-    BF_NORM_L2 = (cv.BFMatcher, (cv.NORM_L2, ), {"crossCheck": True}) # good for SIFT, SURF
-    BF_NORM_HAMM = (cv.BFMatcher, (cv.NORM_HAMMING, ), {"crossCheck": True}) # good for binary desc ORB, AKAZE, BRISK
     
-    def v(self):
-        cls, args, kwargs = self.value
-        return cls(*args, **kwargs)
-  
+    BF_NORM_L2   = { # good for SIFT, SURF
+        "callable": cv.BFMatcher, 
+        "args": (cv.NORM_L2, ),      
+        "kwargs": {"crossCheck": True}
+    } 
+    BF_NORM_HAMM = { # good for binary desc ORB, AKAZE, BRISK
+        "callable": cv.BFMatcher, 
+        "args": (cv.NORM_HAMMING, ), 
+        "kwargs": {"crossCheck": True}
+    } 
+    
+    def instantiate(self):
+        factory = self.value["callable"]
+        args    = self.value["args"]
+        kwargs  = self.value["kwargs"]
+        
+        return factory(*args, **kwargs)
+        
 # all supported methods for blending multiple images to remove moving elements  
 class InitFrameBlending(Enum):
-    MEDIAN = "MEDIAN"
-    MODE   = "MODE"
-    KDE    = "KDE"
+    MEDIAN = {"callable": calc_median_image}
+    MODE   = {"callable": calc_mode_image}
+    KDE    = {"callable": calc_kde_image}
     
-    @property
-    def v(self):
-        # cannot use self.value here -> recursion
-        match self.value:
-            case "MEDIAN":
-                return calc_median_image
-            case "MODE":
-                return calc_mode_image
-            case "KDE":
-                return calc_kde_image
+    def __call__(self, img_list: list[NDArray]) -> NDArray[np.uint8]:
+        return self.value["callable"](img_list)
+        
 
 # minimum number of keypoint matches between two images so that homography estimation is attempted
 MIN_MATCHES_HO = 10 

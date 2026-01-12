@@ -20,7 +20,7 @@ if __name__ == "__main__":
     )
 
     # path to a video that should be processed
-    vid = Path("H:/code_elias/random_scrips_balgrist/test_videos/vid_2.mp4")
+    vid = Path("H:/code_elias/random_scrips_balgrist/test_videos/vid_1.mp4")
     
     # setup a prototypical video container
     cap = cv.VideoCapture(vid)
@@ -28,6 +28,8 @@ if __name__ == "__main__":
         path=vid,
         fpsc=cap.get(cv.CAP_PROP_FPS),
         ftot=cap.get(cv.CAP_PROP_FRAME_COUNT),
+        H=cap.get(cv.CAP_PROP_FRAME_HEIGHT),
+        W=cap.get(cv.CAP_PROP_FRAME_WIDTH),
         static_window=(0, 180) # seconds 
     )
     cap.release()

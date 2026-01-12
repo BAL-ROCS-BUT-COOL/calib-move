@@ -5,7 +5,7 @@ from   typing import Annotated
 from   numpy.typing import NDArray
 import tyro
 
-from ..util.jsonio import json_2_dict
+from ..util.util import json_2_dict
 
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
 from ..config.coreconfig import InitFrameBlending
@@ -15,10 +15,11 @@ from ..config.coreconfig import KeypointMatcher
 
 @dataclass(frozen=True)
 class CLIArgs:
+    # TODO: add output path!!
     # TODO: rename this stuff a bit
     # TODO: more doc
 
-    input_video_path: Annotated[Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path}")]
+    input_video_path: Annotated[Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path>}")]
     """ path to one video or a folder containing at least one video which should be analyized. """
     
     static_window: Annotated[str, tyro.conf.arg(metavar="{START-hh:mm:ss,hh:mm:ss-END,hh:mm:ss-hh:mm:ss,<json-path>}",)]
@@ -36,7 +37,7 @@ class CLIArgs:
     detector: KeypointDetector = KeypointDetector.AKAZE
     """ cv2 keypoint detector type. """
     
-    matcher: KeypointMatcher   = KeypointMatcher.BF_NORM_HAMM
+    matcher: KeypointMatcher = KeypointMatcher.BF_NORM_HAMM
     """ cv2 keypoint matching type. (L2 is good for SIFT or SURF, HAMMING is good for binary descriptors e.g. ORB AKAZE or BRISK). """
 
     def _sanitize_input_video_path(self) -> None:
@@ -122,6 +123,7 @@ class CLIArgs:
             raise ValueError(f"invalid static_window, neither json nor valid window! (got {self.static_window})")
 
     def sanitize(self) -> None:
+        # TODO: check for correct detector and matcher (norm, hamm doesn't work with sift for example!)
         
         if self.n_init_steps <= 1:
             raise ValueError(f"{self.n_init_steps=} too small! (minimum 2)")
@@ -140,11 +142,14 @@ class VideoContainer:
     path: Path
     fpsc: float
     ftot: int
+    
+    H: int
+    W: int
 
     static_window: tuple[float, float] # [start_second, end_second]
 
-    ho_arrays: list[NDArray] = field(default_factory=list)
-    ho_errors: list[bool] = field(default_factory=list)
+    motion: list[NDArray] = field(default_factory=list)
+    errors: list[bool] = field(default_factory=list)
 
     @property
     def stot(self):

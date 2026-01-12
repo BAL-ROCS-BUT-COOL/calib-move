@@ -17,26 +17,26 @@ from .config.plotconfig import PlotConfig
 from .config.coreconfig import ROOT
 from .config.coreconfig import PLOT_OUTPUT_DIR
 
-from .util.output import pbar
+from .util.util import pbar
 
 
 def main_func(argv=None):
 
-    # parse cl args and sanitize ---------------------------------------------------------------------------------------
+    # parse CL args and sanitize ---------------------------------------------------------------------------------------
     # if no argv, tyro it will grab from sys.argv, but if argv is passed (run from script) then it will take main argv
     CLIARGS = tyro.cli(CLIArgs, args=argv)
     CLIARGS.sanitize()
     
-    # gather data ------------------------------------------------------------------------------------------------------
+    # gather videos ----------------------------------------------------------------------------------------------------
     videos = collect_videos(CLIARGS)
     for vd in videos:
         vd.sanitize(CLIARGS)
         
     # process all videos to find homographies --------------------------------------------------------------------------
     for vd in videos:
-        process_video(CLIARGS, vd) # stores homography in VideoContainer
+        process_video(CLIARGS, vd) # stores calculate average movement directly in VideoContainer
 
-    # plot homographies of all videos ----------------------------------------------------------------------------------
+    # plot motion for all videos ---------------------------------------------------------------------------------------
     plots = []
     for vd in pbar(videos, desc="plot videos (all)"):
         plots += plot_video(CLIARGS, vd, PlotConfig)

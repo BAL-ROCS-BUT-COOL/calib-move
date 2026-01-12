@@ -2,8 +2,8 @@ import re
 import cv2 as cv
 from   pathlib import Path
 
-from ..util.timestring import tstr_2_sec
-from ..util.jsonio import json_2_dict
+from ..util.util import tstr_2_sec
+from ..util.util import json_2_dict
 from .containers import VideoContainer
 from .containers import CLIArgs
 
@@ -48,6 +48,8 @@ def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer
         path=vid_path,
         fpsc=cap.get(cv.CAP_PROP_FPS),
         ftot=cap.get(cv.CAP_PROP_FRAME_COUNT),
+        H=cap.get(cv.CAP_PROP_FRAME_HEIGHT),
+        W=cap.get(cv.CAP_PROP_FRAME_WIDTH),
         static_window=window_sec,
     )
     cap.release()

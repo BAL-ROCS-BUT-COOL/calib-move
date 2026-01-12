@@ -20,36 +20,35 @@ if __name__ == "__main__":
     
     # simulate cli args (only need n_main_steps for plotting)
     CLIARGS_SYNTH = CLIArgs(
-        input_video_path="not important[] here (infos in VideoContainer)",
+        input_video_path="not important here (infos in VideoContainer)",
         static_window="not important here either (infos in VideoContainer)"
     )
 
     # simulate some dummy video homographies (and error flags)
     N = CLIARGS_SYNTH.n_main_steps
-    homographies = np.zeros((N, 3, 3))
-    homographies[:, 0, 2] = (np.random.rand(N, ) - 0.5)*800 # x translation part
-    homographies[:, 1, 2] = (np.random.rand(N, ) - 0.5)*400 # y translation part
-    
-    hoerr = N*[0]
-    hoerr[int(N/2)] = 1 # set some flag to true to show how errors in the homography estimation are handled
+    motion = np.random.rand(N)*5
+    errors = np.zeros(shape=(N, ))
+    errors[3] = 1 # set some random errors true
     
     # dummy video container, needed for plotting
     video = VideoContainer(
         path=Path("H:/code_elias/random_scrips_balgrist/test_videos/vid_2_wqefxvlkf.mp4"),
         fpsc=25,
         ftot=7500,
+        H=1080,
+        W=1920,
         static_window=[5, 20], # seconds 
-        ho_arrays=list(homographies),
-        ho_errors=hoerr,
+        motion=list(motion),
+        errors=list(errors),
     )
     
     # plotly customization params
-    CFG = PlotConfig
+    PCFG = PlotConfig
     
     # create the plot and save it (note this returns a png of the plot and not the plotly figure)
-    [fig_png] = plot_video(CLIARGS_SYNTH, video, CFG)
+    [fig_png] = plot_video(CLIARGS_SYNTH, video, PCFG)
     cv.imwrite(ROOT/PLOT_OUTPUT_DIR/"plot_test.png", fig_png)
     
-    # also show in window for debugging
-    plt.imshow(fig_png[:, :, [2, 1, 0, 3]]) # need to invert rgb because of cv2
-    plt.show()
+    # # also show in window for debugging
+    # plt.imshow(fig_png[:, :, [2, 1, 0, 3]]) # need to invert rgb because of cv2
+    # plt.show()
