@@ -49,9 +49,9 @@ class KeypointMatcher(Enum):
         
 # all supported methods for blending multiple images to remove moving elements  
 class InitFrameBlending(Enum):
-    MEDIAN = {"callable": calc_median_image}
-    MODE   = {"callable": calc_mode_image}
-    KDE    = {"callable": calc_kde_image}
+    MEDIAN = {"callable": calc_median_image} # naive, only works if the image is mostly static with a moving objs
+    MODE   = {"callable": calc_mode_image} # work well even when moving objs > 50% of the time, but has artefacts
+    KDE    = {"callable": calc_kde_image} # most robust but computationally intensive
     
     def __call__(self, img_list: list[NDArray]) -> NDArray[np.uint8]:
         return self.value["callable"](img_list)

@@ -32,10 +32,11 @@ def main_func(argv=None):
     for vd in videos:
         vd.sanitize(CLIARGS)
         
-    # process all videos to find homographies --------------------------------------------------------------------------
+    # process all videos to find homographies / movement ---------------------------------------------------------------
     for vd in videos:
         process_video(CLIARGS, vd) # stores calculate average movement directly in VideoContainer
-
+        print(np.array(vd.movements)[:, None].round(decimals=4))
+        
     # plot motion for all videos ---------------------------------------------------------------------------------------
     plots = []
     for vd in pbar(videos, desc="plot videos (all)"):

@@ -14,14 +14,14 @@ if __name__ == "__main__":
 
         # specify some input video or folder containing at least one viceo
         "--input-video-path", 
-        "H:/code_elias/random_scrips_balgrist/test_videos/",
+        "E:/THA_v2/recording_A/raw_videos/GX_0114_vlg6799_mid_left_or_lamp_Rec_A_raw.mp4",
         
         "--static-window", 
         "START-00:03:00",
         # "H:/code_elias/balgrist-calib-move/tests/test_main.json",
         
-        "--n_init-steps", "8",
-        "--n_main-steps", "15",
+        "--n_init-steps", "5",
+        "--n_main-steps", "8",
         
         "--detector", "AKAZE",
         "--matcher", "BF_NORM_HAMM",

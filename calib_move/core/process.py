@@ -16,7 +16,7 @@ from ..config.coreconfig import RANSAC_REPROJ_THRESH_HO
 NRANGE = 5
 HO_GRID_RES = 20 
 BW_MAIN_MODE = 1.0 # px
-AGREEMENT_THRESH = 0.1 # between [0, 1]
+AGREEMENT_THRESH = 0.40 # between [0, 1]
 
 
 def generate_static_frame(CLIARGS: CLIArgs, video: VideoContainer, fidx: list[int]) -> NDArray:
@@ -69,7 +69,8 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
         raise ValueError(f"did not detect ANY keypoints in the init frame of {video.name}!")
     
     # loop trough MAIN-FRAMES of video ---------------------------------------------------------------------------------
-    motion = []
+    movements = []
+    agreements = []
     errors = []
     
     cap = cv.VideoCapture(video.path)
@@ -91,7 +92,7 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
             if len(kps_f) == 0:
                 # no keypoints, no homography
                 ho_arrays_temp.append(np.zeros((3, 3)))
-                ho_errors_temp.append(1)
+                ho_errors_temp.append(True)
                 continue
             
             # match with keypoints from static frame
@@ -101,7 +102,7 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
             if len(matches) < max(4, MIN_MATCHES_HO):
                 # few matches, potentially no good homography
                 ho_arrays_temp.append(np.zeros((3, 3)))
-                ho_errors_temp.append(1)
+                ho_errors_temp.append(True)
                 continue
             
             # extract only the (x, y) points from the keypoints
@@ -114,18 +115,19 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
             if HO is None:
                 # if ho estimation fails, cv2 returns None
                 ho_arrays_temp.append(np.zeros((3, 3)))
-                ho_errors_temp.append(1)
+                ho_errors_temp.append(True)
                 continue
             
             # store if good homography was found
             ho_arrays_temp.append(HO)
-            ho_errors_temp.append(0)
+            ho_errors_temp.append(False)
 
         # if ANY of the homographies are erroneous -----------------------------
         # no motion can be estimated in this case
-        if np.any([err==1 for err in ho_errors_temp]) is True:
-            motion.append(0) # can be any value as it will be replaced by np.nan afterwards
-            errors.append(1)
+        if np.any([err is True for err in ho_errors_temp]) is True:
+            movements.append(np.nan) # has to be NaN for plotly to recognize and hide it
+            agreements.append(np.nan) # has to be NaN for plotly to recognize and hide it
+            errors.append(True)
         
         # if all homographies are successful -----------------------------------
         else:
@@ -137,33 +139,37 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
             mag_means = np.array(mag_means)
             
             # estimate the main mode value and the "agreement" between the individual points
-            main_mode, agreement = main_mode_kde(mag_means, bandwidth=BW_MAIN_MODE)
+            main_mode, main_mode_agreement = main_mode_kde(mag_means, bandwidth=BW_MAIN_MODE)
             
             # if the points are randomly scattered the agreement will be low and this frame should be ignored
-            if agreement < AGREEMENT_THRESH:
-                motion.append(0) # can be any value as it will be replaced by np.nan afterwards
-                errors.append(1) 
+            if main_mode_agreement < AGREEMENT_THRESH:
+                movements.append(np.nan) # has to be NaN for plotly to recognize and hide it
+                agreements.append(np.nan) # has to be NaN for plotly to recognize and hide it
+                errors.append(True) 
              
             # if the multiple sub-frames around the main frame have at least somewhat similar values, then the agreement will be higher and the estimation can be used   
             else:
-                motion.append(np.median(mag_means))
-                errors.append(0)
-           
+                movements.append(main_mode)
+                agreements.append(main_mode_agreement)
+                errors.append(False)
+    
+    # not doing this can cause problems in rare cases       
     cap.release()
     
-    return motion, errors
+    return movements, agreements, errors
 
 def process_video(CLIARGS: CLIArgs, video: VideoContainer) -> None:
+    # NOTE: cv2 has a bug where sometimes even the second last frame is not retrievable, so therefore the last frame index is padded by 2, to have some safety margin to not run into this problem.
     
     # setup the frame indices for the static window 
     fidx_init = np.linspace(*video.static_window, CLIARGS.n_init_steps) * video.fpsc
-    fidx_init = np.clip(fidx_init, a_min=0, a_max=video.ftot-1).astype(np.int64)
+    fidx_init = np.clip(fidx_init, a_min=0, a_max=video.ftot-2).astype(np.int64)
     
     # setup the frame indices for the main entire video (cv2 frame index starts @ 0!). Add padding at the beginning and end to allow for sampling a few frames around each index, to get multiple estimates of motion at each index and reject outliers
-    fidx_main = np.linspace(0+video.fpsc, (video.ftot-1)-video.fpsc, CLIARGS.n_main_steps).astype(np.int64)
+    fidx_main = np.linspace(0+video.fpsc, (video.ftot-2)-video.fpsc, CLIARGS.n_main_steps).astype(np.int64)
 
     # generate the reference frame by blending multiple images from the static window
     static_frame = generate_static_frame(CLIARGS, video, fidx_init)
     
     # estimate the homography relative to the static frame for all other step in the whole video
-    video.motion, video.errors = calculate_homographies(CLIARGS, video, static_frame, fidx_main)
+    video.movements, video.agreements, video.errors = calculate_homographies(CLIARGS, video, static_frame, fidx_main)

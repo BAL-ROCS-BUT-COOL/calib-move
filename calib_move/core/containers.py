@@ -148,7 +148,8 @@ class VideoContainer:
 
     static_window: tuple[float, float] # [start_second, end_second]
 
-    motion: list[NDArray] = field(default_factory=list)
+    movements: list[float] = field(default_factory=list)
+    agreements: list[float] = field(default_factory=list)
     errors: list[bool] = field(default_factory=list)
 
     @property
