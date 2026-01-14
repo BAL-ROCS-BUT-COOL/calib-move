@@ -16,14 +16,14 @@ from ..config.coreconfig import RANSAC_REPROJ_THRESH_HO
 NRANGE = 5
 HO_GRID_RES = 20 
 BW_MAIN_MODE = 1.0 # px
-AGREEMENT_THRESH = 0.40 # between [0, 1]
+AGREEMENT_THRESH = 0.50 # between [0, 1]
 
 
 def generate_static_frame(CLIARGS: CLIArgs, video: VideoContainer, fidx: list[int]) -> NDArray:
     
     cap = cv.VideoCapture(video.path)
     frame_coll = []
-    for fi in pbar(fidx, desc=f"static frame {video.name}"):
+    for fi in pbar(fidx, desc=f"static frame of {video.name}", position=1, leave=False):
         cap.set(cv.CAP_PROP_POS_FRAMES, fi)
         ret, frame = cap.read()
         if ret is False:
@@ -74,7 +74,7 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
     errors = []
     
     cap = cv.VideoCapture(video.path)
-    for fi in pbar(fidx, desc=f"homographies {video.name}"):
+    for fi in pbar(fidx, desc=f"movements of {video.name}", position=1, leave=False):
         
         # go through SUB-FRAMES around each main frame -------------------------
         # go through a few frames around the main one and match their keypoints to the static frame. record HOs

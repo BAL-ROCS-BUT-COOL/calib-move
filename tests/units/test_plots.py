@@ -44,7 +44,7 @@ if __name__ == "__main__":
         
         H=1080,
         W=1920,
-        static_window=[5, 10], # seconds 
+        static_window=[0, 18], # seconds 
         
         movements=list(motions),
         agreements=list(agreements),

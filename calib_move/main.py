@@ -9,8 +9,8 @@ import cv2 as cv
 import tyro
 
 from .core.containers import CLIArgs
-from .core.collect import collect_videos
-from .core.process import process_video
+from .core.collecting import collect_videos
+from .core.processing import process_video
 from .core.plotting import plot_video
 
 from .config.plotconfig import PlotConfig
@@ -33,13 +33,12 @@ def main_func(argv=None):
         vd.sanitize(CLIARGS)
         
     # process all videos to find homographies / movement ---------------------------------------------------------------
-    for vd in videos:
+    for vd in pbar(videos, desc=f"processing video(s)", position=0, leave=True):
         process_video(CLIARGS, vd) # stores calculate average movement directly in VideoContainer
-        print(np.array(vd.movements)[:, None].round(decimals=4))
         
     # plot motion for all videos ---------------------------------------------------------------------------------------
     plots = []
-    for vd in pbar(videos, desc="plot videos (all)"):
+    for vd in pbar(videos, desc="creating plot(s)", position=1, leave=False):
         plots += plot_video(CLIARGS, vd, PlotConfig)
     
     # stitch all plots together and save -------------------------------------------------------------------------------

@@ -22,6 +22,39 @@ def tstr_2_sec(timestr: str) -> int:
     
     return seconds
 
+def trunc_str(name: str, n: int) -> str:
+    if len(name) > n:
+        return name[0:n-1] + "…"
+    else:
+        return name
+
+def pbar(
+    *args, 
+    desc: str = None, 
+    bar_format: str = "{l_bar}{bar}|-({n_fmt:>5}/{total_fmt:>5})-[{rate_fmt:>9}]", 
+    unit_scale: bool = True, 
+    dynamic_ncols: bool = True,
+    **kwargs
+) -> tqdm:
+    
+    if desc is not None:
+        desc = trunc_str(desc, 32)
+        desc = f"{desc:<32}"
+    if desc is None:
+        desc = ""
+        desc = f"{desc:<32}"
+
+    return tqdm(*args, desc=desc, bar_format=bar_format, unit_scale=unit_scale, dynamic_ncols=dynamic_ncols, **kwargs)
+
+def str_2_json(file_path: str, data: str):
+    with open(file_path, mode="w", encoding="utf-8") as file:
+        file.write(data)
+
+def json_2_dict(file_path: str):
+    with open(file_path, mode="r", encoding="utf-8") as file:
+        data = json.load(file)
+    return data
+
 def main_mode_kde(
     datapoints: NDArray,
     bandwidth: float,
@@ -90,29 +123,3 @@ def main_mode_kde(
     agreement  = (pdf[idx_argmax] - 1) / (datapoints.shape[0] - 1)
     
     return x_argmax, agreement
-
-def trunc_str(name: str, n: int) -> str:
-    if len(name) > n:
-        return name[0:n-1] + "…"
-    else:
-        return name
-
-def pbar(*args, desc=None, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}]", unit_scale=True, **kwargs):
-    if desc is not None:
-        desc = trunc_str(desc, 32)
-        desc = f"{desc:<32}"
-    if desc is None:
-        desc = ""
-        desc = f"{desc:<32}"
-
-    return tqdm(*args, desc=desc, bar_format=bar_format, unit_scale=unit_scale, **kwargs)
-
-def str_2_json(file_path: str, data: str):
-    with open(file_path, mode="w", encoding="utf-8") as file:
-        file.write(data)
-
-def json_2_dict(file_path: str):
-    with open(file_path, mode="r", encoding="utf-8") as file:
-        data = json.load(file)
-    return data
-
