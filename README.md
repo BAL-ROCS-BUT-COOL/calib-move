@@ -13,7 +13,7 @@ A simple utility package for determining whether a supposedly static camera move
 
 ### **1. clone the repository**
 ```
-git clone https://github.com/eliassteiner1/balgrist-calib-move.git
+git clone https://github.com/BAL-ROCS-BUT-COOL/calib-move
 cd <repo-folder>
 ```
 
