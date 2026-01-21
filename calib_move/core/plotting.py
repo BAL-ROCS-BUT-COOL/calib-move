@@ -1,7 +1,11 @@
+import cv2 as cv
+import einops as eo
 import numpy as np
 from   numpy.typing import NDArray
 import plotly.graph_objects as go
 from   plotly.subplots import make_subplots
+
+from calib_move.util.video import get_video_frame_gry
 
 from ..util.util import sec_2_tstr
 from .containers import CLIArgs
@@ -10,7 +14,7 @@ from ..config.plotconfig import PlotConfig
 from ..util.plot import fig_2_numpy
 
 
-def plot_video(CLIARGS: CLIArgs, video: VideoContainer, PCFG: PlotConfig) -> list[NDArray]:
+def plot_video(CLIARGS: CLIArgs, PCFG: PlotConfig, video: VideoContainer) -> list[NDArray]:
     
     # prepare data to plot. Plotly has a nice feature where if a datapoint has NaN values, it will be hidden and it handles it gracefully. Since the motion and agreement values are filled with NaN where an error occured, these points will be hidden. The time coordinate does not need to have NaNs as one is sufficient to hide the datapoint.
     data_time = np.linspace(0, video.stot, CLIARGS.n_main_steps)
@@ -183,5 +187,86 @@ def plot_video(CLIARGS: CLIArgs, video: VideoContainer, PCFG: PlotConfig) -> lis
         secondary_y=True,
     )
 
-    return [fig_2_numpy(fig)]
+    return [fig_2_numpy(fig)[..., 0:3]]
+
+
+
+
+def generate_overlay_slices(CLIARGS: CLIArgs, PCFG: PlotConfig, video: VideoContainer) -> list[NDArray]:
+
+    TOPK = 3
+    NSEC = 8 # the main resolution has to be divisible by this!! (TODO sanitize)
+
+    # generate full overlay image from start middle and end of the video
+    cap = cv.VideoCapture(video.path)
+    overlay = np.stack(
+        [
+            get_video_frame_gry(cap, int(0.10*video.ftot)),
+            get_video_frame_gry(cap, int(0.50*video.ftot)),
+            get_video_frame_gry(cap, int(0.80*video.ftot)),
+        ],
+        axis=2,
+        dtype=np.uint8
+    )
+    cap.release()
+
+    # slice the image into smaller sections
+    slices = eo.rearrange(overlay, "(Bh h) (Bw w) c -> Bh Bw h w c", Bh=NSEC, Bw=NSEC)
+
+    # score each slice according to edge density and edge angle agreement
+    results = []
+    idxs = []
+    for i in range(NSEC):
+        for j in range(NSEC):
+            slice_img = slices[i, j, ...]
+            gray = cv.cvtColor(slice_img, cv.COLOR_BGR2GRAY)
+            gx = cv.Sobel(gray, cv.CV_32F, 1, 0)
+            gy = cv.Sobel(gray, cv.CV_32F, 0, 1)
+            mag, ang = cv.cartToPolar(gx, gy, angleInDegrees=True)
+            hist, _ = np.histogram(ang, bins=32, range=(0, 180), weights=mag)
+            score_hist = hist.max() / (hist.sum() + 1e-6)
+
+            edges = cv.Canny(gray, 50, 150)
+            score_edges = np.mean(edges>0)
+
+            results.append((score_hist, score_edges))
+            idxs.append((i, j))
+
+    results = np.array(results)
+    idxs = np.array(idxs)
+    
+    scores = (results[:, 0]/np.max(results[:, 0]))**2 * (1 - 2*np.abs(0.33 - results[:, 1]/np.max(results[:, 1])))
+
+    # sort whole array by score (so that indices are sorted with it)
+    idxs = idxs[np.argsort(scores)[::-1]]
+
+    # get the topK slice images
+    slices_best = slices[idxs[0:TOPK, 0].astype(int), idxs[0:TOPK, 1].astype(int), :, :, :]
+
+    # resize the slices and padd them to fit the main plots
+    TARGET_H = PCFG.PLOT_RES[0]
+    TARGET_W = int(1.5*TARGET_H)
+    MIN_PAD = 50
+    
+    INNER_H = TARGET_H - 2 * MIN_PAD
+    INNER_W = TARGET_W - 2 * MIN_PAD
+    
+    scale = min(INNER_W / video.W, INNER_H / video.H)
+    new_w = round(video.W * scale)
+    new_h = round(video.H * scale)
+    
+    y0 = (TARGET_H - new_h) // 2
+    x0 = (TARGET_W - new_w) // 2
+    
+    slices_best_resized = np.ones(shape=(TOPK, TARGET_H, TARGET_W, 3), dtype=np.uint8)*255
+    for i, sl in enumerate(slices_best):
+        slices_best_resized[i, y0:y0+new_h, x0:x0+new_w, :] = cv.resize(
+            sl, 
+            (new_w, new_h), 
+            interpolation=cv.INTER_AREA
+        )
+    
+    slices_best_resized_stitched = eo.rearrange(slices_best_resized, "B h w c -> h (B w) c")
+    
+    return [slices_best_resized_stitched]
 

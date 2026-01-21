@@ -11,17 +11,16 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
     argv = [
-
-        # specify some input video or folder containing at least one viceo
-        "--input-video-path", 
-        "E:/THA_v2/recording_A/raw_videos/",
+        "--input-video-path", "F:/visceral_v1/RecordingA/raw_videos/",
+        "--output_path", "H:/code_bal/VISCERAL_REC_A/",
+        "--plot_name", "test_plot",
         
-        "--static-window", 
-        "START-00:03:00",
-        # "H:/code_elias/balgrist-calib-move/tests/test_main.json",
+        "--name-blacklist", "aria, ego, iphone, canon, far",
         
-        "--n_init-steps", "5",
-        "--n_main-steps", "3",
+        "--static-window", "START-00:10:00",
+        
+        "--n_init-steps", "8",
+        "--n_main-steps", "10",
         
         "--detector", "AKAZE",
         "--matcher", "BF_NORM_HAMM",

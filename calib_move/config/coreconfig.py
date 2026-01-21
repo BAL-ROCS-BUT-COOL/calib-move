@@ -58,7 +58,7 @@ class InitFrameBlending(Enum):
         
 
 # minimum number of keypoint matches between two images so that homography estimation is attempted
-MIN_MATCHES_HO = 10 
+MIN_MATCHES_HO = 20
 
 # ransac threshold for homography estimation
 RANSAC_REPROJ_THRESH_HO = 5

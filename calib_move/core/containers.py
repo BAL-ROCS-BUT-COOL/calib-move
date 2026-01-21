@@ -15,23 +15,36 @@ from ..config.coreconfig import KeypointMatcher
 
 @dataclass(frozen=True)
 class CLIArgs:
-    # TODO: add output path!!
     # TODO: rename this stuff a bit
     # TODO: more doc
 
-    input_video_path: Annotated[Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path>}")]
+    # required ---------------------------------------------------------------------------------------------------------
+    input_video_path: Annotated[
+        Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path>}")
+    ]
     """ path to one video or a folder containing at least one video which should be analyized. """
     
-    static_window: Annotated[str, tyro.conf.arg(metavar="{START-hh:mm:ss,hh:mm:ss-END,hh:mm:ss-hh:mm:ss,<json-path>}",)]
-    """ a certain part of the video, relative to which the homographies are estimated. can be specified explicitly via three string options or via a json file (for specifying different windows for multiple videos). """
+    output_path: Path
+    """ path to the location where the results should be saved. """
     
-    n_init_steps: int = 5
+    static_window: Annotated[
+        str, tyro.conf.arg(metavar="{<START-hh:mm:ss>,<hh:mm:ss-END>,<hh:mm:ss-hh:mm:ss>,<json-path>}",)
+    ]
+    """ a certain part of the video (ideally where the camera is known to be static), relative to which the movements are estimated. can be specified explicitly via three string options or via a json file (for specifying different windows for multiple videos). """
+    
+    # optional ---------------------------------------------------------------------------------------------------------
+    name_blacklist: str = "" #TEMP! (TODO remove)
+    
+    plot_name: str = "camera_movement_plot"
+    """ base name for the output png file (will be: <plot_name>.png). """
+    
+    n_init_steps: int = 8
     """ number of equally spaced steps (in the static window) for which frames are extracted and combined to form one good reference image without moving elements. the homography is estimated relative to this static image for all other parts of the video. """
     
     init_frame_blending: InitFrameBlending = InitFrameBlending.KDE
     """ method for combining multiple frames (from the static window) to ideally remove moving elements. """
 
-    n_main_steps: int = 10
+    n_main_steps: int = 16
     """ number of equally spaced steps (in the input video) for which the homography is estimated relative to the static frame. """
     
     detector: KeypointDetector = KeypointDetector.AKAZE
@@ -61,6 +74,11 @@ class CLIArgs:
         else:
             raise ValueError(f"invalid input_video_path, neither file nor folder! (got {self.input_video_path})")
 
+    def _sanitize_output_path(self) -> None:
+        
+        if self.output_path.is_dir() is False:
+            raise ValueError(f"output path is not a directory! (got {self.output_path})")
+        
     @staticmethod
     def _validate_window_str(static_window: str) -> bool:
         matches = 0
@@ -122,17 +140,19 @@ class CLIArgs:
         else:
             raise ValueError(f"invalid static_window, neither json nor valid window! (got {self.static_window})")
 
-    def sanitize(self) -> None:
-        # TODO: check for correct detector and matcher (norm, hamm doesn't work with sift for example!)
-        
+    def _sanitize_steps(self) -> None:
         if self.n_init_steps <= 1:
             raise ValueError(f"{self.n_init_steps=} too small! (minimum 2)")
         
         if self.n_main_steps <= 1:
             raise ValueError(f"{self.n_main_steps=} too small! (minimum 2)")
         
+    def sanitize(self) -> None:
+        # TODO: check for correct detector and matcher (norm, hamm doesn't work with sift for example!)
         self._sanitize_input_video_path()
+        self._sanitize_output_path()
         self._sanitize_static_window()
+        self._sanitize_steps()
 
 @dataclass
 class VideoContainer:
@@ -151,6 +171,9 @@ class VideoContainer:
     movements: list[float] = field(default_factory=list)
     agreements: list[float] = field(default_factory=list)
     errors: list[bool] = field(default_factory=list)
+
+    detections: list[any] = field(default_factory=list)
+    sections: list[NDArray] = field(default_factory=list)
 
     @property
     def stot(self):

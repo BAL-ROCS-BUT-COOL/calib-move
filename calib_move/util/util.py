@@ -31,7 +31,7 @@ def trunc_str(name: str, n: int) -> str:
 def pbar(
     *args, 
     desc: str = None, 
-    bar_format: str = "{l_bar}{bar}|-({n_fmt:>5}/{total_fmt:>5})-[{rate_fmt:>9}]", 
+    bar_format: str = "{l_bar}{bar}|—({n_fmt:>5}/{total_fmt:>5})—[{rate_fmt:>9}]", 
     unit_scale: bool = True, 
     dynamic_ncols: bool = True,
     **kwargs

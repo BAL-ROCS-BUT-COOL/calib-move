@@ -2,6 +2,8 @@ import numpy as np
 from   numpy.typing import NDArray
 import cv2 as cv
 
+from calib_move.core.plotting import generate_overlay_slices
+
 from .containers import CLIArgs
 from .containers import VideoContainer
 
@@ -13,27 +15,10 @@ from ..config.coreconfig import MIN_MATCHES_HO
 from ..config.coreconfig import RANSAC_REPROJ_THRESH_HO
 
 
-NRANGE = 5
+NRANGE = 5 # subframes
 HO_GRID_RES = 20 
-BW_MAIN_MODE = 1.0 # px
-AGREEMENT_THRESH = 0.50 # between [0, 1]
-
-
-def generate_static_frame(CLIARGS: CLIArgs, video: VideoContainer, fidx: list[int]) -> NDArray:
-    
-    cap = cv.VideoCapture(video.path)
-    frame_coll = []
-    for fi in pbar(fidx, desc=f"static frame of {video.name}", position=1, leave=False):
-        cap.set(cv.CAP_PROP_POS_FRAMES, fi)
-        ret, frame = cap.read()
-        if ret is False:
-            ValueError("could not read frame") #TODO add some info here ,should not occurr tho if sanitization holds
-        else:
-            frame_coll.append(cv.cvtColor(frame, cv.COLOR_BGR2GRAY))
-    cap.release()
-    static_frame = CLIARGS.init_frame_blending(frame_coll)
-    
-    return static_frame
+BW_MAIN_MODE = 2.0 # px
+AGREEMENT_THRESH = 0.30 # between [0, 1]
 
 def evaluate_homography(HO: NDArray, img_shape: tuple[int, int], resolution: int) -> tuple[float, NDArray]:
     
@@ -56,7 +41,23 @@ def evaluate_homography(HO: NDArray, img_shape: tuple[int, int], resolution: int
 
     return mean_mag, avg_vec
 
-def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame: NDArray[np.uint8], fidx: list[int]):
+def generate_static_frame(CLIARGS: CLIArgs, video: VideoContainer, fidx: list[int]) -> NDArray:
+    
+    cap = cv.VideoCapture(video.path)
+    frame_coll = []
+    for fi in pbar(fidx, desc=f"static frame of {video.name}", position=1, leave=False):
+        cap.set(cv.CAP_PROP_POS_FRAMES, fi)
+        ret, frame = cap.read()
+        if ret is False:
+            ValueError("could not read frame") #TODO add some info here ,should not occurr tho if sanitization holds
+        else:
+            frame_coll.append(cv.cvtColor(frame, cv.COLOR_BGR2GRAY))
+    cap.release()
+    static_frame = CLIARGS.init_frame_blending(frame_coll)
+    
+    return static_frame
+
+def calculate_movements(CLIARGS: CLIArgs, video: VideoContainer, static_frame: NDArray[np.uint8], fidx: list[int]):
     
     # setup ------------------------------------------------------------------------------------------------------------
     detector = CLIARGS.detector.instantiate() # instantiates detector obj
@@ -72,6 +73,7 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
     movements = []
     agreements = []
     errors = []
+    detections = []
     
     cap = cv.VideoCapture(video.path)
     for fi in pbar(fidx, desc=f"movements of {video.name}", position=1, leave=False):
@@ -80,8 +82,9 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
         # go through a few frames around the main one and match their keypoints to the static frame. record HOs
         ho_arrays_temp = []
         ho_errors_temp = []
+        ho_detect_temp = []
         
-        for ri in np.linspace(-video.fpsc, video.fpsc, NRANGE, dtype=int):
+        for ri in np.linspace(-5*video.fpsc, 5*video.fpsc, NRANGE, dtype=int): # TODO: rout out this range size
         
             # read a single frame
             frame_gry = get_video_frame_gry(cap, fi+ri)
@@ -121,6 +124,7 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
             # store if good homography was found
             ho_arrays_temp.append(HO)
             ho_errors_temp.append(False)
+            ho_detect_temp.extend(list(p_0.squeeze()[mask.squeeze().astype(bool)]))
 
         # if ANY of the homographies are erroneous -----------------------------
         # no motion can be estimated in this case
@@ -146,17 +150,24 @@ def calculate_homographies(CLIARGS: CLIArgs, video: VideoContainer, static_frame
                 movements.append(np.nan) # has to be NaN for plotly to recognize and hide it
                 agreements.append(np.nan) # has to be NaN for plotly to recognize and hide it
                 errors.append(True) 
+                
+            # HACK, TODO: remove
+            elif main_mode >= 250:
+                movements.append(np.nan)
+                agreements.append(np.nan)
+                errors.append(True)
              
             # if the multiple sub-frames around the main frame have at least somewhat similar values, then the agreement will be higher and the estimation can be used   
             else:
                 movements.append(main_mode)
                 agreements.append(main_mode_agreement)
                 errors.append(False)
+                detections.extend(ho_detect_temp)
     
     # not doing this can cause problems in rare cases       
     cap.release()
     
-    return movements, agreements, errors
+    return movements, agreements, errors, detections
 
 def process_video(CLIARGS: CLIArgs, video: VideoContainer) -> None:
     # NOTE: cv2 has a bug where sometimes even the second last frame is not retrievable, so therefore the last frame index is padded by 2, to have some safety margin to not run into this problem.
@@ -166,10 +177,14 @@ def process_video(CLIARGS: CLIArgs, video: VideoContainer) -> None:
     fidx_init = np.clip(fidx_init, a_min=0, a_max=video.ftot-2).astype(np.int64)
     
     # setup the frame indices for the main entire video (cv2 frame index starts @ 0!). Add padding at the beginning and end to allow for sampling a few frames around each index, to get multiple estimates of motion at each index and reject outliers
-    fidx_main = np.linspace(0+video.fpsc, (video.ftot-2)-video.fpsc, CLIARGS.n_main_steps).astype(np.int64)
+    fidx_main = np.linspace(0 + 5*video.fpsc, (video.ftot-2) - 5*video.fpsc, CLIARGS.n_main_steps).astype(np.int64)
 
     # generate the reference frame by blending multiple images from the static window
     static_frame = generate_static_frame(CLIARGS, video, fidx_init)
     
     # estimate the homography relative to the static frame for all other step in the whole video
-    video.movements, video.agreements, video.errors = calculate_homographies(CLIARGS, video, static_frame, fidx_main)
+    video.movements, video.agreements, video.errors, video.detections = calculate_movements(
+        CLIARGS, video, static_frame, fidx_main
+    )
+    
+    

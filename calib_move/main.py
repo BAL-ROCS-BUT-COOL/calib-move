@@ -12,6 +12,7 @@ from .core.containers import CLIArgs
 from .core.collecting import collect_videos
 from .core.processing import process_video
 from .core.plotting import plot_video
+from .core.plotting import generate_overlay_slices
 
 from .config.plotconfig import PlotConfig
 from .config.coreconfig import ROOT
@@ -38,12 +39,14 @@ def main_func(argv=None):
         
     # plot motion for all videos ---------------------------------------------------------------------------------------
     plots = []
-    for vd in pbar(videos, desc="creating plot(s)", position=1, leave=False):
-        plots += plot_video(CLIARGS, vd, PlotConfig)
+    for vd in pbar(videos, desc="creating plot(s)", position=0, leave=True):
+        plots += plot_video(CLIARGS, PlotConfig, vd, )
     
     # stitch all plots together and save -------------------------------------------------------------------------------
-    plots = eo.rearrange(np.array(plots), "B h w c -> (B h) w c")
-    cv.imwrite(ROOT/PLOT_OUTPUT_DIR/"plot_results.png", plots)
+    plots_stitched = eo.rearrange(np.array(plots), "B h w c -> (B h) w c")
+    print("writing plot image...")
+    cv.imwrite(CLIARGS.output_path/f"{CLIARGS.plot_name}.png", plots_stitched)
+    
 
  
     

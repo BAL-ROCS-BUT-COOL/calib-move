@@ -48,12 +48,13 @@ def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer
         path=vid_path,
         fpsc=cap.get(cv.CAP_PROP_FPS),
         ftot=cap.get(cv.CAP_PROP_FRAME_COUNT),
-        H=cap.get(cv.CAP_PROP_FRAME_HEIGHT),
-        W=cap.get(cv.CAP_PROP_FRAME_WIDTH),
+        H=int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)),
+        W=int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
         static_window=window_sec,
     )
-    cap.release()
     
+    cap.release()
+
     return [vid]
 
 def subcollect_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContainer]:
@@ -61,6 +62,14 @@ def subcollect_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContaine
     videos = []
     videos_paths = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in CLIARGS.input_video_path.glob(f"*{xt}")]
     for vid_path in videos_paths:
+        
+        #HACK: filtering out some vids manually
+        name = str(vid_path.name).lower() # normalized name
+        blacklist = set(CLIARGS.name_blacklist.split(", "))
+        if any([el in name for el in blacklist]):
+            print(f"removing video: {vid_path.name}")
+            continue
+        
         videos += subcollect_single(vid_path, window)
 
     return videos
