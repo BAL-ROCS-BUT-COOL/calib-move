@@ -1,16 +1,13 @@
 import re
-from   dataclasses import dataclass, field
-from   pathlib import Path
-from   typing import Annotated
-from   numpy.typing import NDArray
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Annotated
+
 import tyro
+from numpy.typing import NDArray
 
+from ..config.coreconfig import ALLOWED_VIDEO_EXT, InitFrameBlending, KeypointDetector, KeypointMatcher
 from ..util.util import json_2_dict
-
-from ..config.coreconfig import ALLOWED_VIDEO_EXT
-from ..config.coreconfig import InitFrameBlending
-from ..config.coreconfig import KeypointDetector
-from ..config.coreconfig import KeypointMatcher
 
 
 @dataclass(frozen=True)

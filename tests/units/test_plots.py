@@ -1,18 +1,17 @@
 import os
 import sys
-from   pathlib import Path
-import numpy as np
-import matplotlib.pyplot as plt
+from pathlib import Path
+
 import cv2 as cv
+import matplotlib.pyplot as plt
+import numpy as np
 
 # for testing, insert package into path to make sure that the local folder is used!
 sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[2]))
-from calib_move.core.containers import CLIArgs
-from calib_move.core.containers import VideoContainer
-from calib_move.config.plotconfig import PlotConfig
 from calib_move.config.coreconfig import ROOT
+from calib_move.config.plotconfig import PlotConfig
+from calib_move.core.containers import CLIArgs, VideoContainer
 from calib_move.core.plotting import plot_video
-
 
 PLOT_OUTPUT_DIR = Path("C:/Users/steie/Downloads")
 

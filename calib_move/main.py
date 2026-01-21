@@ -1,16 +1,13 @@
-import einops as eo
-
-import numpy as np
 import cv2 as cv
+import einops as eo
+import numpy as np
 import tyro
 
-from .core.containers import CLIArgs
-from .core.collecting import collect_videos
-from .core.processing import process_video
-from .core.plotting import plot_video
-
 from .config.plotconfig import PlotConfig
-
+from .core.collecting import collect_videos
+from .core.containers import CLIArgs
+from .core.plotting import plot_video
+from .core.processing import process_video
 from .util.util import pbar
 
 

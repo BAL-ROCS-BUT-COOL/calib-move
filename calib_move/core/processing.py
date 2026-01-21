@@ -1,21 +1,19 @@
-import numpy as np
-from   numpy.typing import NDArray
 import cv2 as cv
+import numpy as np
+from numpy.typing import NDArray
 
-from .containers import CLIArgs
-from .containers import VideoContainer
-
-from ..util.util import pbar
-from ..util.util import main_mode_kde
+from ..config.coreconfig import (
+    AGREEMENT_THRESH,
+    BW_MAIN_MODE,
+    HO_GRID_RES,
+    MIN_MATCHES_HO,
+    N_SUBFR,
+    RANSAC_REPROJ_THRESH_HO,
+    T_SUBFR,
+)
+from ..util.util import main_mode_kde, pbar
 from ..util.video import get_video_frame_gry
-
-from ..config.coreconfig import MIN_MATCHES_HO
-from ..config.coreconfig import RANSAC_REPROJ_THRESH_HO
-from ..config.coreconfig import N_SUBFR
-from ..config.coreconfig import T_SUBFR
-from ..config.coreconfig import HO_GRID_RES
-from ..config.coreconfig import BW_MAIN_MODE
-from ..config.coreconfig import AGREEMENT_THRESH
+from .containers import CLIArgs, VideoContainer
 
 
 def evaluate_homography(HO: NDArray, img_shape: tuple[int, int], resolution: int) -> tuple[float, NDArray]:

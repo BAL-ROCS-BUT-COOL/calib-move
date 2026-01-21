@@ -1,7 +1,7 @@
 import cv2 as cv
-import plotly.graph_objects as go
 import numpy as np
-from   numpy.typing import NDArray
+import plotly.graph_objects as go
+from numpy.typing import NDArray
 
 
 def fig_2_numpy(figure: go.Figure) -> NDArray:

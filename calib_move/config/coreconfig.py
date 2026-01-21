@@ -1,13 +1,11 @@
-from   pathlib import Path
-from   enum import Enum
+from enum import Enum
+from pathlib import Path
+
 import cv2 as cv
 import numpy as np
-from   numpy.typing import NDArray
+from numpy.typing import NDArray
 
-from ..util.imgblending import calc_median_image
-from ..util.imgblending import calc_mode_image
-from ..util.imgblending import calc_kde_image
-
+from ..util.imgblending import calc_kde_image, calc_median_image, calc_mode_image
 
 # handling file paths thorughout the module
 ROOT = Path(__file__).resolve().parents[2]

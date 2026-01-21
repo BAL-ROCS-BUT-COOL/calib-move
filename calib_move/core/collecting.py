@@ -1,13 +1,11 @@
 import re
-import cv2 as cv
-from   pathlib import Path
+from pathlib import Path
 
-from ..util.util import tstr_2_sec
-from ..util.util import json_2_dict
-from .containers import VideoContainer
-from .containers import CLIArgs
+import cv2 as cv
 
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
+from ..util.util import json_2_dict, tstr_2_sec
+from .containers import CLIArgs, VideoContainer
 
 
 def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer]:

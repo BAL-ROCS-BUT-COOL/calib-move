@@ -1,13 +1,14 @@
 import os
-from   glob import glob
+from glob import glob
+from pathlib import Path
+
 import tyro
-from   pathlib import Path
 
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
 from ..util.util import str_2_json
 
 
-def generate_template_json(vid_folder_path: Path):
+def generate_template_json(vid_folder_path: Path) -> None:
     
     # create a template json from a folder with all video of type "ALLOWED_VIDEO_EXT"
     vid_glob = [vd for xt in ALLOWED_VIDEO_EXT for vd in glob(os.path.join(vid_folder_path, f"*{xt}"))]

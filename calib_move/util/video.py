@@ -1,5 +1,5 @@
 import cv2 as cv
-from   numpy.typing import NDArray
+from numpy.typing import NDArray
 
 
 def get_video_frame_gry(cap: cv.VideoCapture, fidx: int) -> NDArray:

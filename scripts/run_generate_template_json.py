@@ -1,6 +1,6 @@
 import os
 import sys
-from   pathlib import Path
+from pathlib import Path
 
 try:
     # this is the standard import that is used when the package is installed

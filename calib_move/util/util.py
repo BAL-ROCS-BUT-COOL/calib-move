@@ -1,9 +1,9 @@
-import re
 import json
+import re
 
 import numpy as np
-from   numpy.typing import NDArray
-from   tqdm import tqdm
+from numpy.typing import NDArray
+from tqdm import tqdm
 
 
 def sec_2_tstr(seconds: float) -> str:
@@ -46,12 +46,12 @@ def pbar(
 
     return tqdm(*args, desc=desc, bar_format=bar_format, unit_scale=unit_scale, dynamic_ncols=dynamic_ncols, **kwargs)
 
-def str_2_json(file_path: str, data: str):
+def str_2_json(file_path: str, data: str) -> None:
     with open(file_path, mode="w", encoding="utf-8") as file:
         file.write(data)
 
-def json_2_dict(file_path: str):
-    with open(file_path, mode="r", encoding="utf-8") as file:
+def json_2_dict(file_path: str) -> None:
+    with open(file_path, encoding="utf-8") as file:
         data = json.load(file)
     return data
 

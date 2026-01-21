@@ -37,7 +37,12 @@ target-version = "py311"
 
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
-select = ["E4", "E7", "E9", "F"]
+select = [
+    "E4", "E7", "E9",  # pycodestyle errors
+    "F",               # pyflakes
+    "I",               # isort (import sorting)
+    "UP",              # pyupgrade (modernize syntax)
+]
 ignore = []
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -46,6 +51,11 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[lint.isort]
+# Configure import sorting
+known-first-party = ["calib_move"]  # Replace with your package name
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [format]
 # Like Black, use double quotes for strings.

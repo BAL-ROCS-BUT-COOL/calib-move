@@ -1,6 +1,7 @@
 import os
 import sys
-from   pathlib import Path
+from pathlib import Path
+
 import tyro
 
 # for testing, insert package into path to make sure that the local folder is used!

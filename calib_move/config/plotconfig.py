@@ -1,4 +1,4 @@
-class PlotConfig():
+class PlotConfig:
     
     PLOT_RES = [300, 1000]
     

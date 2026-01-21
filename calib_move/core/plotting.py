@@ -1,17 +1,12 @@
-import cv2 as cv
-import einops as eo
 import numpy as np
-from   numpy.typing import NDArray
 import plotly.graph_objects as go
-from   plotly.subplots import make_subplots
+from numpy.typing import NDArray
+from plotly.subplots import make_subplots
 
-from calib_move.util.video import get_video_frame_gry
-
-from ..util.util import sec_2_tstr
-from .containers import CLIArgs
-from .containers import VideoContainer
 from ..config.plotconfig import PlotConfig
 from ..util.plot import fig_2_numpy
+from ..util.util import sec_2_tstr
+from .containers import CLIArgs, VideoContainer
 
 
 def plot_video(CLIARGS: CLIArgs, PCFG: PlotConfig, video: VideoContainer) -> list[NDArray]:

@@ -1,14 +1,13 @@
 import os
 import sys
-from   pathlib import Path
+from pathlib import Path
+
 import cv2 as cv
 
 # for testing, insert package into path to make sure that the local folder is used!
 sys.path.insert(0, os.path.normcase(Path(__file__).resolve().parents[2]))
+from calib_move.core.containers import CLIArgs, VideoContainer
 from calib_move.main import process_video
-from calib_move.core.containers import CLIArgs
-from calib_move.core.containers import VideoContainer
-
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
