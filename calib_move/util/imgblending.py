@@ -4,8 +4,6 @@ from   numpy.typing import NDArray
 import scipy.stats
 
 
-# TODO: docs!
-
 def calc_median_image(img_list: list[NDArray]) -> NDArray[np.uint8]:
     
     img_stack = np.array(img_list)

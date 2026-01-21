@@ -24,13 +24,16 @@ if __name__ == "__main__":
         # "-h",
         
         # path to some dummy video or folder containing videos
-        "--input-video-path", "H:/code_elias/random_scrips_balgrist/test_videos/",
+        "--input-path", "H:/code_elias/random_scrips_balgrist/test_videos/",
         
         # use one of the four methods to specify the static window
-        "--static-window",    "H:/code_elias/balgrist-calib-move/tests/test_main.json",
-        # "--static-window",    "START-00:00:00",
-        # "--static-window",    "00:00:00-END",
-        # "--static-window",    "00:00:00-00:01:00",   
+        "--static-window", "00:00:00-00:01:00",
+        # "--static-window", "START-00:00:00",
+        # "--static-window", "00:00:00-END",
+        # "--static-window", "H:/code_elias/balgrist-calib-move/tests/test_main.json", 
+        
+        # output path: where to save the plot
+        "--output-path", "./",
         
         # optional arguments
         # ...    

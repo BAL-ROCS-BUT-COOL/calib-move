@@ -11,16 +11,18 @@ from calib_move.core.containers import CLIArgs
 from calib_move.core.containers import VideoContainer
 from calib_move.config.plotconfig import PlotConfig
 from calib_move.config.coreconfig import ROOT
-from calib_move.config.coreconfig import PLOT_OUTPUT_DIR
 from calib_move.core.plotting import plot_video
 
+
+PLOT_OUTPUT_DIR = Path("C:/Users/steie/Downloads")
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
     # simulate cli args (only need n_main_steps for plotting)
     CLIARGS_SYNTH = CLIArgs(
-        input_video_path="not important here (infos in VideoContainer)",
+        input_path="not important here (infos in VideoContainer)",
+        output_path="not important here",
         static_window="not important here either (infos in VideoContainer)",
         n_main_steps=10,
     )
@@ -55,12 +57,12 @@ if __name__ == "__main__":
     PCFG = PlotConfig
     
     # create the plot and save it (note this returns a png of the plot and not the plotly figure)
-    [fig_png] = plot_video(CLIARGS_SYNTH, video, PCFG)
+    [fig_png] = plot_video(CLIARGS_SYNTH, PCFG, video)
     
     cv.imwrite(ROOT/PLOT_OUTPUT_DIR/"plot_test.png", fig_png)
     
-    # # also show in window for debugging
-    # plt.imshow(fig_png[:, :, [2, 1, 0, 3]]) # need to invert rgb because of cv2
-    # plt.show()
+    # also show in window for debugging
+    plt.imshow(fig_png[:, :, [2, 1, 0]]) # need to invert rgb because of cv2
+    plt.show()
     
     print("done")

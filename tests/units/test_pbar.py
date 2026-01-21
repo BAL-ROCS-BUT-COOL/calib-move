@@ -11,10 +11,11 @@ from calib_move.util.util import pbar
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
-    for i in pbar(range(20), desc="outer, should persist", leave=True, position=0):
-        for j in pbar(range(1234), desc="inner", leave=False, position=1):
+    for i in pbar(range(5), desc="outer, should persist", leave=True, position=0):
+        for j in pbar(range(1000), desc="inner", leave=False, position=1):
             time.sleep(0.00001)
 
-
+    for j in pbar(range(20), desc="next one", leave=True, position=0):
+        time.sleep(0.1)
     
     print("done")

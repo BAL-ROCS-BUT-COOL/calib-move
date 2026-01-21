@@ -13,13 +13,16 @@ if __name__ == "__main__":
     
     CLIARGS_SYNTH = CLIArgs(
         # some path to a video or a folder of videos
-        input_video_path=Path("H:/code_elias/random_scrips_balgrist/test_videos/"),
+        input_path=Path("H:/code_elias/random_scrips_balgrist/test_videos/"),
         
         # choose some method to input the static window timestamps
         static_window="H:/code_elias/balgrist-calib-move/tests/test_main.json",
         # static_window="00:03:00-END",
         # static_window="START-00:02:00",
         # static_window="00:01:00-00:03:00",
+        
+        # dummy output path for saving plot
+        output_path=Path("./"),
     )
     
     CLIARGS_SYNTH.sanitize()

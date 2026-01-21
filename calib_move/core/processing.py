@@ -2,8 +2,6 @@ import numpy as np
 from   numpy.typing import NDArray
 import cv2 as cv
 
-from calib_move.core.plotting import generate_overlay_slices
-
 from .containers import CLIArgs
 from .containers import VideoContainer
 
@@ -13,12 +11,12 @@ from ..util.video import get_video_frame_gry
 
 from ..config.coreconfig import MIN_MATCHES_HO
 from ..config.coreconfig import RANSAC_REPROJ_THRESH_HO
+from ..config.coreconfig import N_SUBFR
+from ..config.coreconfig import T_SUBFR
+from ..config.coreconfig import HO_GRID_RES
+from ..config.coreconfig import BW_MAIN_MODE
+from ..config.coreconfig import AGREEMENT_THRESH
 
-
-NRANGE = 5 # subframes
-HO_GRID_RES = 20 
-BW_MAIN_MODE = 2.0 # px
-AGREEMENT_THRESH = 0.30 # between [0, 1]
 
 def evaluate_homography(HO: NDArray, img_shape: tuple[int, int], resolution: int) -> tuple[float, NDArray]:
     
@@ -49,7 +47,7 @@ def generate_static_frame(CLIARGS: CLIArgs, video: VideoContainer, fidx: list[in
         cap.set(cv.CAP_PROP_POS_FRAMES, fi)
         ret, frame = cap.read()
         if ret is False:
-            ValueError("could not read frame") #TODO add some info here ,should not occurr tho if sanitization holds
+            ValueError("could not read frame")
         else:
             frame_coll.append(cv.cvtColor(frame, cv.COLOR_BGR2GRAY))
     cap.release()
@@ -84,7 +82,7 @@ def calculate_movements(CLIARGS: CLIArgs, video: VideoContainer, static_frame: N
         ho_errors_temp = []
         ho_detect_temp = []
         
-        for ri in np.linspace(-5*video.fpsc, 5*video.fpsc, NRANGE, dtype=int): # TODO: rout out this range size
+        for ri in np.linspace(-T_SUBFR*video.fpsc, T_SUBFR*video.fpsc, N_SUBFR, dtype=int): 
         
             # read a single frame
             frame_gry = get_video_frame_gry(cap, fi+ri)
@@ -150,12 +148,6 @@ def calculate_movements(CLIARGS: CLIArgs, video: VideoContainer, static_frame: N
                 movements.append(np.nan) # has to be NaN for plotly to recognize and hide it
                 agreements.append(np.nan) # has to be NaN for plotly to recognize and hide it
                 errors.append(True) 
-                
-            # HACK, TODO: remove
-            elif main_mode >= 250:
-                movements.append(np.nan)
-                agreements.append(np.nan)
-                errors.append(True)
              
             # if the multiple sub-frames around the main frame have at least somewhat similar values, then the agreement will be higher and the estimation can be used   
             else:
@@ -177,7 +169,11 @@ def process_video(CLIARGS: CLIArgs, video: VideoContainer) -> None:
     fidx_init = np.clip(fidx_init, a_min=0, a_max=video.ftot-2).astype(np.int64)
     
     # setup the frame indices for the main entire video (cv2 frame index starts @ 0!). Add padding at the beginning and end to allow for sampling a few frames around each index, to get multiple estimates of motion at each index and reject outliers
-    fidx_main = np.linspace(0 + 5*video.fpsc, (video.ftot-2) - 5*video.fpsc, CLIARGS.n_main_steps).astype(np.int64)
+    fidx_main = np.linspace(
+        0 + T_SUBFR*video.fpsc, 
+        (video.ftot-2) - T_SUBFR*video.fpsc, 
+        CLIARGS.n_main_steps
+    ).astype(np.int64)
 
     # generate the reference frame by blending multiple images from the static window
     static_frame = generate_static_frame(CLIARGS, video, fidx_init)

@@ -15,7 +15,8 @@ if __name__ == "__main__":
     
     # setup some dummy cli args (need the matcher, detector and n_steps)
     CLIARGS_SYNTH = CLIArgs(
-        input_video_path="not important here (infos in VideoContainer)",
+        input_path="not important here (infos in VideoContainer)",
+        output_path="not important here",
         static_window="not important here either (infos in VideoContainer)"
     )
 

@@ -1,5 +1,4 @@
 class PlotConfig():
-    # TODO add some description
     
     PLOT_RES = [300, 1000]
     
@@ -33,9 +32,9 @@ class PlotConfig():
     BASEMARGIN = 20
     MARGIN = dict(l=60+BASEMARGIN, r=BASEMARGIN+15, t=45+BASEMARGIN, b=BASEMARGIN, pad=5)
     
-    TITLE_MAIN_XY = [ 0.015, 0.92]
-    TITLE_MOVE_XY = [-0.078, 0.50]
-    TITLE_AGRM_XY = [ 1.000, 0.50]
+    TITLE_MAIN_XY = [ 0.015, 0.920]
+    TITLE_MOVE_XY = [-0.078, 0.500]
+    TITLE_AGRM_XY = [ 1.000, 0.500]
     
     # axes ---------------------------------------------------------------------
     MIN_YRANGE_AUTOMAX = 10

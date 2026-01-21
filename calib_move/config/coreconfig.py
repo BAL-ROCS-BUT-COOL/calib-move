@@ -11,11 +11,9 @@ from ..util.imgblending import calc_kde_image
 
 # handling file paths thorughout the module
 ROOT = Path(__file__).resolve().parents[2]
-PLOT_OUTPUT_DIR = Path("outputs/")
-TEMPLATE_JSON_PATH = Path("outputs/")
 
 # all these video extensions are glob-ed when a video folder is used as input
-ALLOWED_VIDEO_EXT = {".mp4"} # TODO: check what even works with cv2, maybe move to one "param file" / config rather
+ALLOWED_VIDEO_EXT = {".mp4"} # TODO: check what even works with cv2, 
 
 # all available cv2 detector types
 class KeypointDetector(Enum):
@@ -62,3 +60,18 @@ MIN_MATCHES_HO = 20
 
 # ransac threshold for homography estimation
 RANSAC_REPROJ_THRESH_HO = 5
+
+# number of subframes around each main step
+N_SUBFR = 5 
+
+# length in s of the interval (in which the subframes are evenly distributed)
+T_SUBFR = 3 
+
+# point-grid resolution for evaluating homographies
+HO_GRID_RES = 20
+
+# bandwidth [px] for the robust averaging of movement in subframes (bandwidth for kde)
+BW_MAIN_MODE = 2.0 
+
+# any motion estimate with confidence lower than this will be considered an error (between [0, 1])
+AGREEMENT_THRESH = 0.30

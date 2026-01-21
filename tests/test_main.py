@@ -11,11 +11,9 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     
     argv = [
-        "--input-video-path", "F:/visceral_v1/RecordingA/raw_videos/",
+        "--input-path", "F:/visceral_v1/RecordingA/raw_videos/",
         "--output_path", "H:/code_bal/VISCERAL_REC_A/",
         "--plot_name", "test_plot",
-        
-        "--name-blacklist", "aria, ego, iphone, canon, far",
         
         "--static-window", "START-00:10:00",
         

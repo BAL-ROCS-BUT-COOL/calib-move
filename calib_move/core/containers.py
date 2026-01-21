@@ -15,11 +15,9 @@ from ..config.coreconfig import KeypointMatcher
 
 @dataclass(frozen=True)
 class CLIArgs:
-    # TODO: rename this stuff a bit
-    # TODO: more doc
-
+    
     # required ---------------------------------------------------------------------------------------------------------
-    input_video_path: Annotated[
+    input_path: Annotated[
         Path, tyro.conf.arg(metavar="{<single-video-path>,<video-folder-path>}")
     ]
     """ path to one video or a folder containing at least one video which should be analyized. """
@@ -33,8 +31,6 @@ class CLIArgs:
     """ a certain part of the video (ideally where the camera is known to be static), relative to which the movements are estimated. can be specified explicitly via three string options or via a json file (for specifying different windows for multiple videos). """
     
     # optional ---------------------------------------------------------------------------------------------------------
-    name_blacklist: str = "" #TEMP! (TODO remove)
-    
     plot_name: str = "camera_movement_plot"
     """ base name for the output png file (will be: <plot_name>.png). """
     
@@ -56,23 +52,23 @@ class CLIArgs:
     def _sanitize_input_video_path(self) -> None:
 
         # single video path ----------------------------------------------------
-        if self.input_video_path.is_file():
-            if self.input_video_path.suffix not in ALLOWED_VIDEO_EXT:
-                raise ValueError(f"path to single video is not a valid video file! (got {self.input_video_path})")
+        if self.input_path.is_file():
+            if self.input_path.suffix not in ALLOWED_VIDEO_EXT:
+                raise ValueError(f"path to single video is not a valid video file! (got {self.input_path})")
             else:
                 return # OK (found a good single video file)
         
         # video folder path ----------------------------------------------------
-        elif self.input_video_path.is_dir():
-            vids = [vd for xt in ALLOWED_VIDEO_EXT for vd in self.input_video_path.glob(f"*{xt}")]
+        elif self.input_path.is_dir():
+            vids = [vd for xt in ALLOWED_VIDEO_EXT for vd in self.input_path.glob(f"*{xt}")]
             if len(vids) == 0:
-                raise ValueError(f"found no valid video files in video folder! (got {self.input_video_path})")
+                raise ValueError(f"found no valid video files in video folder! (got {self.input_path})")
             else:
                 return # OK (got a folder with at least one good video file in it)
 
         # invalid path ---------------------------------------------------------
         else:
-            raise ValueError(f"invalid input_video_path, neither file nor folder! (got {self.input_video_path})")
+            raise ValueError(f"invalid input_video_path, neither file nor folder! (got {self.input_path})")
 
     def _sanitize_output_path(self) -> None:
         
@@ -103,10 +99,10 @@ class CLIArgs:
         json_dict = json_2_dict(Path(self.static_window))
         
         # aggregate single or multiple video files to ckeck their names agains the keys in the json file
-        if self.input_video_path.is_file():
-            videos = [self.input_video_path]
+        if self.input_path.is_file():
+            videos = [self.input_path]
         else: 
-            videos = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in self.input_video_path.glob(f"*{xt}")]
+            videos = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in self.input_path.glob(f"*{xt}")]
         
         missing_keys = []
         missing_vals = []
@@ -146,18 +142,26 @@ class CLIArgs:
         
         if self.n_main_steps <= 1:
             raise ValueError(f"{self.n_main_steps=} too small! (minimum 2)")
-        
+     
+    def _sanitize_detector_matcher(self) -> None:        
+        if (self.detector is KeypointDetector.SIFT) and (self.matcher is KeypointMatcher.BF_NORM_HAMM):
+            raise ValueError(
+                f"BF_NORM_HAMM can only be used with binary descriptors such as ORB or AKAZE! (got {self.detector})"
+            )
+        if (self.detector is KeypointDetector.ORB or self.detector is KeypointDetector.AKAZE) and (self.matcher is KeypointMatcher.BF_NORM_L2):
+            raise ValueError(
+                f"With binary descriptors (ORB, AKAZE) it is preferred to use BF_NORM_HAMM! (got {self.detector})"
+            )
+           
     def sanitize(self) -> None:
-        # TODO: check for correct detector and matcher (norm, hamm doesn't work with sift for example!)
         self._sanitize_input_video_path()
         self._sanitize_output_path()
         self._sanitize_static_window()
         self._sanitize_steps()
+        self._sanitize_detector_matcher()
 
 @dataclass
 class VideoContainer:
-    # TODO: rename this stuff a bit
-    # TODO: add doc
 
     path: Path
     fpsc: float

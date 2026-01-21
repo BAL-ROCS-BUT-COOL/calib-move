@@ -10,7 +10,6 @@ from .containers import CLIArgs
 from ..config.coreconfig import ALLOWED_VIDEO_EXT
 
 
-# TODO: use pathlib Path EVERYWHERE
 def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer]:
 
     cap = cv.VideoCapture(vid_path)
@@ -60,16 +59,8 @@ def subcollect_single(vid_path: Path, window: str | dict) -> list[VideoContainer
 def subcollect_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContainer]:
     
     videos = []
-    videos_paths = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in CLIARGS.input_video_path.glob(f"*{xt}")]
+    videos_paths = [Path(vd) for xt in ALLOWED_VIDEO_EXT for vd in CLIARGS.input_path.glob(f"*{xt}")]
     for vid_path in videos_paths:
-        
-        #HACK: filtering out some vids manually
-        name = str(vid_path.name).lower() # normalized name
-        blacklist = set(CLIARGS.name_blacklist.split(", "))
-        if any([el in name for el in blacklist]):
-            print(f"removing video: {vid_path.name}")
-            continue
-        
         videos += subcollect_single(vid_path, window)
 
     return videos
@@ -77,14 +68,14 @@ def subcollect_multi(CLIARGS: CLIArgs, window: str | dict) -> list[VideoContaine
 def collect_videos(CLIARGS: CLIArgs) -> list[VideoContainer]:
     
     # single video -----------------------------------------------------------------------------------------------------
-    if CLIARGS.input_video_path.is_file():
+    if CLIARGS.input_path.is_file():
         # window json ----------------------------------------------------------
         if Path(CLIARGS.static_window).is_file():
             window = json_2_dict(CLIARGS.static_window)
         # window string --------------------------------------------------------
         else:
             window = CLIARGS.static_window
-        videos = subcollect_single(CLIARGS.input_video_path, window)      
+        videos = subcollect_single(CLIARGS.input_path, window)      
     
     # video folder -----------------------------------------------------------------------------------------------------
     else:

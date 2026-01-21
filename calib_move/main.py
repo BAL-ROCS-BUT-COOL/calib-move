@@ -1,7 +1,3 @@
-import os
-import re
-import json
-from   glob import glob
 import einops as eo
 
 import numpy as np
@@ -12,11 +8,8 @@ from .core.containers import CLIArgs
 from .core.collecting import collect_videos
 from .core.processing import process_video
 from .core.plotting import plot_video
-from .core.plotting import generate_overlay_slices
 
 from .config.plotconfig import PlotConfig
-from .config.coreconfig import ROOT
-from .config.coreconfig import PLOT_OUTPUT_DIR
 
 from .util.util import pbar
 
@@ -34,7 +27,7 @@ def main_func(argv=None):
         vd.sanitize(CLIARGS)
         
     # process all videos to find homographies / movement ---------------------------------------------------------------
-    for vd in pbar(videos, desc=f"processing video(s)", position=0, leave=True):
+    for vd in pbar(videos, desc="processing video(s)", position=0, leave=True):
         process_video(CLIARGS, vd) # stores calculate average movement directly in VideoContainer
         
     # plot motion for all videos ---------------------------------------------------------------------------------------

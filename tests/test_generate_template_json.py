@@ -12,7 +12,7 @@ if __name__ == "__main__":
         
     argv = [
         # just needs the path to a folder of videos for which it will generate a template json
-        "--vid-folder-path", "H:/code_bal/VISCERAL_DATASET_REC_A/internal_calibration"
+        "--vid-folder-path", "H:/code_bal/VISCERAL_internal_calibration"
     ]
     
     main_generate_json(argv=argv)
